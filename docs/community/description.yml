@@ -1,0 +1,36 @@
+# NOT FOR SUBMISSION — superseded
+# This file is archived draft material only.
+# duckdb-cn-shift will NOT be submitted to duckdb/community-extensions
+# (legal / compliance decision; engineering quality may still align with
+# community norms). See docs/DECISIONS.md ADR-002.
+#
+# Do not open a community-extensions PR using this YAML.
+# Version tags use sql-v* / ext-v*, not a community v0.1.0 release line.
+
+extension:
+  name: cnshift
+  description: China coordinate-offset conversion for DuckDB (WGS-84, GCJ-02, BD-09). Primary delivery is SQL macros; C++ extension is optional/private.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - tshelianthus
+
+repo:
+  github: tshelianthus/duckdb-cn-shift
+  # Historical placeholder only. NOT FOR community-extensions submission.
+  ref: REPLACE_WITH_FULL_GIT_COMMIT_SHA
+
+docs:
+  hello_world: |
+    -- Prefer SQL bootstrap (not community INSTALL):
+    INSTALL spatial;
+    LOAD spatial;
+    -- .read 'sql/cnshift.sql'
+    SELECT 1;
+
+  extended_description: |
+    SUPERSEDED for community submission. See docs/DECISIONS.md.
+    Primary artifact is sql/cnshift.sql with official spatial.
+    Algorithm source of truth: docs/ALGORITHM.md.
