@@ -1,0 +1,44 @@
+# SQL smoke (primary delivery)
+
+# Lightweight gate for sql/cnshift.sql. Does not build the C++ extension
+# and is not a community-extensions submission path (docs/DECISIONS.md).
+
+name: SQL smoke
+on:
+  push:
+    paths:
+      - "sql/**"
+      - "testdata/golden/**"
+      - "test/sql/**"
+      - "docs/ALGORITHM.md"
+      - "docs/bootstrap.md"
+      - ".github/workflows/sql-smoke.yml"
+  pull_request:
+    paths:
+      - "sql/**"
+      - "testdata/golden/**"
+      - "test/sql/**"
+      - "docs/ALGORITHM.md"
+      - "docs/bootstrap.md"
+      - ".github/workflows/sql-smoke.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: sql-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sql-smoke:
+    name: Golden fixtures (LOAD spatial)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install DuckDB CLI
+        run: |
+          curl -fsSL -o duckdb.zip \
+            https://install.duckdb.org/v1.5.5/duckdb_cli-linux-amd64.zip
+          unzip -o duckdb.zip
+          sudo mv duckdb /usr/local/bin/duckdb
+          duckdb --version
+      - name: Run SQL-track goldens
+        run: bash test/sql/run_sql_track.sh

@@ -1,0 +1,54 @@
+#
+# Main Extension Distribution Pipeline (private / self-hosted quality gate)
+#
+# DECISIONS (see docs/DECISIONS.md, docs/CI.md):
+# - This workflow supports engineering quality aligned with community norms.
+# - It does NOT imply submission to duckdb/community-extensions (forbidden:
+#   legal/compliance). Do not add publish-to-community steps.
+# - Version tags: sql-v* / ext-v* (docs/VERSIONING.md).
+#
+# Paths (ADR-006):
+# - Full C++ matrix only for ext/**, src/**, CMake/Makefile/vcpkg,
+#   .gitmodules, load-smoke test, and this workflow (see `on.paths`).
+# - SQL-only changes run `.github/workflows/sql-smoke.yml`:
+#     INSTALL/LOAD spatial → .read sql/cnshift.sql → testdata/golden.
+#
+name: Main Extension Distribution Pipeline
+on:
+  push:
+    paths:
+      - "ext/**"
+      - "src/**"
+      - "test/sql/00_load.test"
+      - "CMakeLists.txt"
+      - "Makefile"
+      - "extension_config.cmake"
+      - "vcpkg.json"
+      - ".gitmodules"
+      - ".github/workflows/MainDistributionPipeline.yml"
+  pull_request:
+    paths:
+      - "ext/**"
+      - "src/**"
+      - "test/sql/00_load.test"
+      - "CMakeLists.txt"
+      - "Makefile"
+      - "extension_config.cmake"
+      - "vcpkg.json"
+      - ".gitmodules"
+      - ".github/workflows/MainDistributionPipeline.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' && github.sha || '' }}
+  cancel-in-progress: true
+
+jobs:
+  duckdb-stable-build:
+    name: Build extension binaries
+    # Paths: see workflow `on.paths` (sql/** does not run this job).
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
+    with:
+      duckdb_version: v1.5.5
+      ci_tools_version: v1.5-variegata
+      extension_name: cnshift
