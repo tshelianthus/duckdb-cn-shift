@@ -1,0 +1,300 @@
+# duckdb-cn-shift
+
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+China CRS offset transforms (WGS-84 ↔ GCJ-02 ↔ BD-09) for DuckDB.
+
+UX and delivery model follow the PostgreSQL/PostGIS “paste SQL functions into the DB” pattern: one function for points / lines / polygons; callers do not dump vertices. Formula and product reference: [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) (see Acknowledgments).
+
+- **Primary delivery**: `sql/cnshift.sql` (SQL macros + official `spatial`)
+- **Optional**: C++ extension (`ext/`, [planned](ext/README.md))
+- **Not published** to [`duckdb/community-extensions`](https://github.com/duckdb/community-extensions) (legal/compliance). Engineering quality still tracks community norms. See [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGORITHM.md) (numeric behavior aligned with the reference above).
+
+## How to use (no `make`)
+
+Primary artifact is one SQL file: [`sql/cnshift.sql`](sql/cnshift.sql). Install any [official DuckDB client](https://duckdb.org/docs/current/clients/overview.html). Do **not** build this repo, do **not** run `make`, do **not** `INSTALL cnshift FROM community`. There is no language package (`pip` / `install.packages("cnshift")`, etc.).
+
+Same steps on every client:
+
+1. Obtain `sql/cnshift.sql` (clone the repo or copy the file).
+2. On the **current connection**: `INSTALL spatial;` (once per machine) → `LOAD spatial;` (once per process/connection).
+3. Execute the **full** `cnshift.sql` into that database (macros land in the catalog).
+4. `SELECT wgs84_to_gcj02(31.2304, 121.4737);` or `SELECT wgs84_to_gcj02(geom) FROM parcels;`
+
+Point overload is **`(lat, lon)`**; geometry `ST_Point` remains **`(lon, lat)`**. `.read` exists **only in the CLI**. In-memory DBs need the script every new process; a persistent `.duckdb` needs injection once (new connections still need `LOAD spatial`).
+
+GitHub READMEs have **no tab UI**. Sections below follow the official Client Overview table order (Primary, then Secondary). Jump links:
+
+**Primary:** [C](#c) · [CLI](#cli) · [Java](#java-jdbc) · [Go](#go) · [Node.js](#nodejs-node-neo) · [ODBC](#odbc) · [Python](#python) · [R](#r) · [Rust](#rust) · [Wasm](#webassembly-wasm)
+
+**Secondary:** [ADBC](#adbc-arrow) · [C#](#c-net) · [C++ client](#c-client)
+
+### C
+
+[`libduckdb` / C API](https://duckdb.org/docs/current/clients/c/overview.html). `duckdb_query` is one statement at a time; split the full script with `duckdb_extract_statements`, or CLI `.read` into a persistent file then `duckdb_open`.
+
+```c
+duckdb_database db;
+duckdb_connection con;
+duckdb_result res;
+duckdb_open(NULL, &db);          /* or duckdb_open("analysis.duckdb", &db) */
+duckdb_connect(db, &con);
+duckdb_query(con, "INSTALL spatial;", &res);
+duckdb_destroy_result(&res);
+duckdb_query(con, "LOAD spatial;", &res);
+duckdb_destroy_result(&res);
+/* then extract + prepare cnshift.sql, or open a pre-injected analysis.duckdb */
+duckdb_query(con, "SELECT wgs84_to_gcj02(31.2304, 121.4737);", &res);
+```
+
+### CLI
+
+[CLI client](https://duckdb.org/docs/current/clients/cli/overview.html). Paths are relative to the **current working directory**.
+
+```bash
+cd /path/to/duckdb-cn-shift
+duckdb                  # in-memory: reinject every new CLI session
+# duckdb analysis.duckdb  # persistent: inject once
+```
+
+```sql
+INSTALL spatial;
+LOAD spatial;
+.read 'sql/cnshift.sql'   -- or absolute .read '/abs/path/sql/cnshift.sql'
+SELECT wgs84_to_gcj02(31.2304, 121.4737);
+SELECT wgs84_to_gcj02(ST_Point(121.4737, 31.2304));
+```
+
+Inject once into a persistent file for other languages to share:
+
+```bash
+duckdb analysis.duckdb -c "INSTALL spatial; LOAD spatial; .read 'sql/cnshift.sql'"
+```
+
+### Java (JDBC)
+
+[`jdbc:duckdb:`](https://duckdb.org/docs/current/clients/java/overview.html) (Maven: `org.duckdb:duckdb_jdbc`). JDBC is usually one statement at a time; split the script or use `Files.readString` carefully. Or open a CLI-injected file: `jdbc:duckdb:analysis.duckdb`.
+
+```java
+Connection conn = DriverManager.getConnection("jdbc:duckdb:"); // or jdbc:duckdb:analysis.duckdb
+try (Statement stmt = conn.createStatement()) {
+    stmt.execute("INSTALL spatial");
+    stmt.execute("LOAD spatial");
+    stmt.execute(Files.readString(Path.of("sql/cnshift.sql"))); // if multi-statement fails, open a pre-injected .duckdb
+    try (ResultSet rs = stmt.executeQuery(
+            "SELECT wgs84_to_gcj02(31.2304, 121.4737)")) {
+        rs.next();
+        System.out.println(rs.getObject(1));
+    }
+}
+```
+
+In DBeaver and similar IDEs: **Execute SQL Script** on `cnshift.sql`, not only the statement under the cursor.
+
+### Go
+
+Official [`github.com/duckdb/duckdb-go/v2`](https://duckdb.org/docs/current/clients/go.html) + `database/sql`.
+
+```go
+import (
+    "database/sql"
+    "os"
+    _ "github.com/duckdb/duckdb-go/v2"
+)
+
+db, _ := sql.Open("duckdb", "") // or "analysis.duckdb"
+defer db.Close()
+db.Exec("INSTALL spatial")
+db.Exec("LOAD spatial")
+script, _ := os.ReadFile("sql/cnshift.sql")
+db.Exec(string(script)) // if multi-statement is rejected, Open a pre-injected file
+row := db.QueryRow("SELECT wgs84_to_gcj02(31.2304, 121.4737)")
+```
+
+### Node.js (node-neo)
+
+Official [`@duckdb/node-api`](https://duckdb.org/docs/current/clients/node_neo/overview.html). Use `extractStatements` for multi-statement scripts.
+
+```javascript
+import { readFileSync } from 'node:fs';
+import { DuckDBInstance } from '@duckdb/node-api';
+
+const instance = await DuckDBInstance.create(); // or create('analysis.duckdb')
+const connection = await instance.connect();
+await connection.run('INSTALL spatial');
+await connection.run('LOAD spatial');
+const script = readFileSync('sql/cnshift.sql', 'utf8');
+const extracted = await connection.extractStatements(script);
+for (let i = 0; i < extracted.count; i++) {
+  const prepared = await extracted.prepare(i);
+  await prepared.run();
+}
+await connection.runAndReadAll('SELECT wgs84_to_gcj02(31.2304, 121.4737)');
+```
+
+### ODBC
+
+[ODBC driver](https://duckdb.org/docs/current/clients/odbc/overview.html) (Excel, Tableau, DBeaver, custom `SQLExecDirect`). After connect, run the same SQL: `INSTALL` / `LOAD spatial`, then execute `cnshift.sql` as a **script**. `SQLExecDirect` is usually one statement; BI tools should use “execute script”. Or CLI-inject `analysis.duckdb` and open that file via ODBC.
+
+### Python
+
+[`duckdb` on PyPI](https://duckdb.org/docs/current/clients/python/overview.html). Verified on 1.5.x that one `execute` can run the whole file:
+
+```python
+from pathlib import Path
+import duckdb
+
+con = duckdb.connect()  # or duckdb.connect("analysis.duckdb")
+con.execute("INSTALL spatial")
+con.execute("LOAD spatial")
+con.execute(Path("sql/cnshift.sql").read_text())
+print(con.sql("SELECT wgs84_to_gcj02(31.2304, 121.4737)").fetchall())
+print(con.sql("SELECT wgs84_to_gcj02(ST_Point(121.4737, 31.2304))").fetchall())
+```
+
+### R
+
+[`duckdb` on CRAN](https://duckdb.org/docs/current/clients/r.html) + DBI.
+
+```r
+library(DBI)
+library(duckdb)
+
+con <- dbConnect(duckdb::duckdb())  # or duckdb("analysis.duckdb")
+dbExecute(con, "INSTALL spatial")
+dbExecute(con, "LOAD spatial")
+dbExecute(con, paste(readLines("sql/cnshift.sql"), collapse = "\n"))
+dbGetQuery(con, "SELECT wgs84_to_gcj02(31.2304, 121.4737)")
+```
+
+If your version rejects multi-statement executes, use `dbConnect(duckdb::duckdb(), "analysis.duckdb")` after a CLI `.read` injection.
+
+### Rust
+
+[`duckdb` on crates.io](https://duckdb.org/docs/current/clients/rust.html) (`duckdb-rs`). Use `execute_batch` for scripts:
+
+```rust
+use duckdb::Connection;
+use std::fs;
+
+let conn = Connection::open_in_memory()?; // or Connection::open("analysis.duckdb")
+conn.execute_batch("INSTALL spatial; LOAD spatial;")?;
+conn.execute_batch(&fs::read_to_string("sql/cnshift.sql")?)?;
+let row: String = conn.query_row(
+    "SELECT wgs84_to_gcj02(31.2304, 121.4737)::VARCHAR",
+    [],
+    |r| r.get(0),
+)?;
+```
+
+### WebAssembly (Wasm)
+
+[`@duckdb/duckdb-wasm`](https://duckdb.org/docs/current/clients/wasm/overview.html). Same SQL; pick a Wasm bundle that [supports `spatial`](https://duckdb.org/docs/current/clients/wasm/extensions.html).
+
+```javascript
+// after official Wasm instantiation of conn:
+await conn.query('INSTALL spatial;');
+await conn.query('LOAD spatial;');
+// split cnshift.sql and query statement-by-statement, or load a native CLI-injected file (Wasm is often in-memory)
+await conn.query('SELECT wgs84_to_gcj02(31.2304, 121.4737);');
+```
+
+### ADBC (Arrow)
+
+Secondary. [DuckDB ADBC](https://duckdb.org/docs/current/clients/adbc.html). Python example:
+
+```python
+from pathlib import Path
+import adbc_driver_duckdb.dbapi
+
+with adbc_driver_duckdb.dbapi.connect("analysis.duckdb") as conn, conn.cursor() as cur:
+    cur.execute("INSTALL spatial")
+    cur.execute("LOAD spatial")
+    cur.execute(Path("sql/cnshift.sql").read_text())  # if multi-statement fails, CLI-inject the file first
+    cur.execute("SELECT wgs84_to_gcj02(31.2304, 121.4737)")
+    print(cur.fetchall())
+```
+
+### C# (.NET)
+
+Secondary. [DuckDB.NET](https://duckdb.net/) (NuGet; official table maintainer Giorgi).
+
+```csharp
+using DuckDB.NET.Data;
+
+using var conn = new DuckDBConnection("Data Source=:memory:"); // or Data Source=analysis.duckdb
+conn.Open();
+using var cmd = conn.CreateCommand();
+cmd.CommandText = "INSTALL spatial;";
+cmd.ExecuteNonQuery();
+cmd.CommandText = "LOAD spatial;";
+cmd.ExecuteNonQuery();
+cmd.CommandText = File.ReadAllText("sql/cnshift.sql");
+cmd.ExecuteNonQuery(); // if multi-statement fails, open a pre-injected file
+cmd.CommandText = "SELECT wgs84_to_gcj02(31.2304, 121.4737);";
+using var reader = cmd.ExecuteReader();
+```
+
+### C++ client
+
+Secondary. [C++ client](https://duckdb.org/docs/current/clients/cpp.html) (not the planned `ext/` extension in this repo).
+
+```cpp
+#include "duckdb.hpp"
+
+duckdb::DuckDB db;                 // or DuckDB("analysis.duckdb")
+duckdb::Connection con(db);
+con.Query("INSTALL spatial");
+con.Query("LOAD spatial");
+// Query cnshift.sql statement-by-statement, or open a CLI-injected file
+con.Query("SELECT wgs84_to_gcj02(31.2304, 121.4737)");
+```
+
+Tertiary clients (Dart / Julia / PHP / Swift, etc.): [Tertiary Clients](https://duckdb.org/docs/current/clients/tertiary_clients/overview.html) — same pattern: `LOAD spatial` + full `cnshift.sql`.
+
+No CGCS2000-named APIs: `ST_Transform` to EPSG:4326 first. Bootstrap notes: [docs/bootstrap.md](docs/bootstrap.md). Optional self-hosted Metabase: [docs/metabase.md](docs/metabase.md).
+
+## Public functions (contract)
+
+| Function | Point | Geometry |
+| :--- | :--- | :--- |
+| `wgs84_to_gcj02` | `(lat, lon) → STRUCT` | `(geom) → GEOMETRY` |
+| `gcj02_to_wgs84` | same | same |
+| `gcj02_to_bd09` | same | same |
+| `bd09_to_gcj02` | same | same |
+| `wgs84_to_bd09` | same | same |
+| `bd09_to_wgs84` | same | same |
+
+Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
+
+Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckdb` CLI).
+
+## C++ extension (planned)
+
+See [ext/README.md](ext/README.md). Any remaining root `src/` scaffold is legacy/experimental, **not** the primary install path. Private binary `LOAD` docs will land when the extension track ships.
+
+## Docs index
+
+| Doc | Content |
+| :--- | :--- |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs: dual-track, no community submit, intentional divergences |
+| [docs/ALGORITHM.md](docs/ALGORITHM.md) | Formulae and constants |
+| [docs/bootstrap.md](docs/bootstrap.md) | Bootstrap / injection |
+| [docs/CI.md](docs/CI.md) | Path filters |
+| [docs/metabase.md](docs/metabase.md) | Self-hosted Metabase + community DuckDB driver (optional) |
+| [testdata/golden/](testdata/golden/) | Shared golden fixtures |
+
+## Acknowledgments
+
+Product shape (SQL-registered CRS transforms over points and geometries) and formula organization draw on:
+
+- [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) — PostgreSQL + PostGIS WGS-84 / GCJ-02 / BD-09 (and CGCS2000 wrappers)
+
+This DuckDB implementation is independent (`CREATE MACRO` + Spatial; optional future C++ extension). Public names and distribution differ from the reference; intentional divergences (e.g. Multi* via `ST_Collect` not `ST_Union`) are in [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
+This license covers this repository only; the reference project keeps its own license.
