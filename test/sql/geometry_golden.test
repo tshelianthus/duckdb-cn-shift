@@ -1,0 +1,115 @@
+# name: test/sql/geometry_golden.test
+# description: GEOMETRY overloads vs shared testdata/golden/geometries.jsonl
+# group: [cnshift]
+
+# Core GEOMETRY (WKT cast) + in-tree json for the shared JSONL goldens.
+require json
+
+require cnshift
+
+statement ok
+CREATE OR REPLACE MACRO cn_test_geom(op, g) AS (
+	CASE op
+		WHEN 'wgs84_to_gcj02' THEN wgs84_to_gcj02(g)
+		WHEN 'gcj02_to_wgs84' THEN gcj02_to_wgs84(g)
+		WHEN 'gcj02_to_bd09' THEN gcj02_to_bd09(g)
+		WHEN 'bd09_to_gcj02' THEN bd09_to_gcj02(g)
+		WHEN 'wgs84_to_bd09' THEN wgs84_to_bd09(g)
+		WHEN 'bd09_to_wgs84' THEN bd09_to_wgs84(g)
+		ELSE NULL
+	END
+);
+
+statement ok
+CREATE OR REPLACE MACRO cn_wkt_type(wkt) AS (
+	regexp_extract(wkt, '^([A-Z]+)')
+);
+
+statement ok
+CREATE OR REPLACE MACRO cn_wkt_nums(wkt) AS (
+	list_transform(
+		regexp_extract_all(wkt, '-?[0-9]+\.[0-9]+|-?[0-9]+'),
+		lambda s: s::DOUBLE
+	)
+);
+
+statement ok
+CREATE TABLE geom_rows AS
+SELECT
+	id,
+	op,
+	expect_type,
+	expect_num_geometries,
+	expect_vertices,
+	cn_test_geom(op, input_wkt::GEOMETRY)::VARCHAR AS gout_wkt
+FROM read_json('testdata/golden/geometries.jsonl', format := 'newline_delimited');
+
+statement ok
+CREATE TABLE geom_failures AS
+SELECT id, reason
+FROM (
+	SELECT
+		id,
+		CASE
+			WHEN gout_wkt IS NULL THEN 'null output'
+			WHEN cn_wkt_type(gout_wkt) != expect_type THEN 'type ' || cn_wkt_type(gout_wkt) || ' != ' || expect_type
+			WHEN len(cn_wkt_nums(gout_wkt)) != 2 * len(expect_vertices) THEN 'vertex count'
+			WHEN list_reduce(
+				list_transform(
+					generate_series(1, len(expect_vertices)::BIGINT),
+					lambda i:
+						abs(cn_wkt_nums(gout_wkt)[2 * i - 1] - expect_vertices[i][1]) > 1e-12
+						OR abs(cn_wkt_nums(gout_wkt)[2 * i] - expect_vertices[i][2]) > 1e-12
+				),
+				lambda acc, x: acc OR x
+			) THEN 'vertex values'
+			WHEN expect_type LIKE 'MULTI%' AND expect_num_geometries = 2
+				AND gout_wkt NOT LIKE '%' || expect_type || '%' THEN 'multi type lost'
+			ELSE NULL
+		END AS reason
+	FROM geom_rows
+)
+WHERE reason IS NOT NULL;
+
+query I
+SELECT count(*) FROM geom_failures;
+----
+0
+
+query I
+SELECT wgs84_to_gcj02(NULL::GEOMETRY) IS NULL;
+----
+true
+
+query I
+SELECT
+	wgs84_to_gcj02('POINT EMPTY'::GEOMETRY)::VARCHAR LIKE '%EMPTY%'
+	AND wgs84_to_gcj02('LINESTRING EMPTY'::GEOMETRY)::VARCHAR LIKE '%EMPTY%'
+	AND wgs84_to_gcj02('POLYGON EMPTY'::GEOMETRY)::VARCHAR LIKE '%EMPTY%'
+	AND wgs84_to_gcj02('MULTIPOLYGON EMPTY'::GEOMETRY)::VARCHAR LIKE '%EMPTY%';
+----
+true
+
+# Adjacent MultiPolygon parts must not be union-merged (ADR-008).
+query I
+SELECT cn_wkt_type(g) = 'MULTIPOLYGON'
+FROM (
+	SELECT wgs84_to_gcj02(
+		'MULTIPOLYGON (((121.47 31.23, 121.48 31.23, 121.48 31.24, 121.47 31.24, 121.47 31.23)), ((121.48 31.23, 121.49 31.23, 121.49 31.24, 121.48 31.24, 121.48 31.23)))'::GEOMETRY
+	)::VARCHAR AS g
+);
+----
+true
+
+# Geometry POINT matches the (lat, lon) overload (X=lon, Y=lat).
+query I
+SELECT
+	abs(cn_wkt_nums(geom_wkt)[2] - pt.lat) < 1e-12
+	AND abs(cn_wkt_nums(geom_wkt)[1] - pt.lon) < 1e-12
+FROM (
+	SELECT
+		wgs84_to_gcj02(31.2304, 121.4737) AS pt,
+		wgs84_to_gcj02('POINT(121.4737 31.2304)'::GEOMETRY)::VARCHAR AS geom_wkt
+);
+----
+true

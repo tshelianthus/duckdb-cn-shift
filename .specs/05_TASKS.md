@@ -4,7 +4,7 @@
 
 - Dual-track, SQL-first, not on community, ALGORITHM as SoT, shared goldens, separate tags: [`docs/DECISIONS.md`](../docs/DECISIONS.md).
 - **Do not** open a PR against `duckdb/community-extensions`.
-- **Do not** run `git submodule add` under `ext/` right now.
+- Submodules (`duckdb`, `extension-ci-tools`) live at **repo root** (not under `ext/`) because `extension-ci-tools` expects that layout.
 
 ## [x] Phase D0: Docs and directory layout (this iteration)
 
@@ -34,15 +34,15 @@
 ## [~] Phase 0 (legacy): C++ extension-template scaffold
 
 - [x] Existing in-repo C++ skeleton and `00_load.test` (not the product mainline)
-- [ ] Optionally keep load-smoke green after submodule checkout (does not block SQL)
+- [x] Optionally keep load-smoke green after submodule checkout (does not block SQL)
 - [ ] **Cancel** former “Phase 2 Community Submission” — superseded by DECISIONS
 
-## [ ] Phase E1 (deferred): ext/ extension fallback
+## [x] Phase E1: ext/ extension fallback
 
-- [ ] Populate `ext/` at kickoff (migrate/new template); algorithm points back to ALGORITHM
-- [ ] Consume the same `testdata/golden/`
-- [ ] Tag `ext-v0.1.0`; full CI matrix only on `ext/**`/`src/**` triggers
-- [ ] Private binary distribution; **still not on community**
+- [x] Populate `ext/` (sources in `ext/src/`; root CMake/Makefile for extension-ci-tools)
+- [x] Consume the same `testdata/golden/`
+- [ ] Tag `ext-v0.1.0` after merge (not tagged this iteration); full CI matrix only on `ext/**`/`src/**`/build-file triggers
+- [x] Private binary distribution docs (`allow_unsigned_extensions`); **still not on community**
 
 ## Explicitly cancelled legacy tasks
 

@@ -1,0 +1,37 @@
+# name: test/sql/api_errors.test
+# description: Point overload range / non-finite inputs throw (C++ prefers errors)
+# group: [cnshift]
+
+require cnshift
+
+# SQL macros return NULL for these; the extension throws (API contract: prefer errors).
+
+statement error
+SELECT wgs84_to_gcj02(91, 0);
+----
+Latitude out of range
+
+statement error
+SELECT wgs84_to_gcj02(-91, 0);
+----
+Latitude out of range
+
+statement error
+SELECT wgs84_to_gcj02(0, 181);
+----
+Longitude out of range
+
+statement error
+SELECT wgs84_to_gcj02(0, -181);
+----
+Longitude out of range
+
+statement error
+SELECT wgs84_to_gcj02('inf'::DOUBLE, 0);
+----
+Latitude out of range
+
+statement error
+SELECT wgs84_to_gcj02('nan'::DOUBLE, 0);
+----
+Latitude out of range
