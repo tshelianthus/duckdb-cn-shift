@@ -3,7 +3,7 @@
 The public SQL surface targets **`geocompass/pg-coordtransform` as the UX benchmark**: convert a point or `GEOMETRY` with one function; vertex traversal stays inside the implementation.
 
 - **Primary deliverable**: startup-injected SQL (`CREATE MACRO`); see Bootstrap.
-- **Fallback**: a future C++ extension exposes the same surface; algorithms must point back to [`docs/ALGORITHM.md`](../docs/ALGORITHM.md).
+- **Fallback**: a C++ extension exposes the same surface; algorithms must point back to [`docs/ALGORITHM.md`](../docs/ALGORITHM.md).
 - **Decisions**: [`docs/DECISIONS.md`](../docs/DECISIONS.md). Not listed on community.
 
 ---

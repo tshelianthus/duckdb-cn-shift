@@ -1,6 +1,6 @@
 # testdata/golden/ — shared golden fixtures
 
-**SQL macro tests** and future **C++ extension SQLLogicTests** share this directory so expectations do not fork.
+**SQL macro tests** and **C++ extension SQLLogicTests** share this directory so expectations do not fork.
 
 ## Files
 

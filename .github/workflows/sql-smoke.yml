@@ -9,7 +9,8 @@ on:
     paths:
       - "sql/**"
       - "testdata/golden/**"
-      - "test/sql/**"
+      - "test/sql/sql_track.test.sql"
+      - "test/sql/run_sql_track.sh"
       - "docs/ALGORITHM.md"
       - "docs/bootstrap.md"
       - ".github/workflows/sql-smoke.yml"
@@ -17,7 +18,8 @@ on:
     paths:
       - "sql/**"
       - "testdata/golden/**"
-      - "test/sql/**"
+      - "test/sql/sql_track.test.sql"
+      - "test/sql/run_sql_track.sh"
       - "docs/ALGORITHM.md"
       - "docs/bootstrap.md"
       - ".github/workflows/sql-smoke.yml"

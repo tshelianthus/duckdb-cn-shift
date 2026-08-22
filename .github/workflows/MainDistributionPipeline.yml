@@ -9,7 +9,7 @@
 #
 # Paths (ADR-006):
 # - Full C++ matrix only for ext/**, src/**, CMake/Makefile/vcpkg,
-#   .gitmodules, load-smoke test, and this workflow (see `on.paths`).
+#   .gitmodules, SQLLogicTest .test files, and this workflow (see `on.paths`).
 # - SQL-only changes run `.github/workflows/sql-smoke.yml`:
 #     INSTALL/LOAD spatial → .read sql/cnshift.sql → testdata/golden.
 #
@@ -19,7 +19,7 @@ on:
     paths:
       - "ext/**"
       - "src/**"
-      - "test/sql/00_load.test"
+      - "test/sql/*.test"
       - "CMakeLists.txt"
       - "Makefile"
       - "extension_config.cmake"
@@ -30,7 +30,7 @@ on:
     paths:
       - "ext/**"
       - "src/**"
-      - "test/sql/00_load.test"
+      - "test/sql/*.test"
       - "CMakeLists.txt"
       - "Makefile"
       - "extension_config.cmake"

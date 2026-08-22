@@ -7,7 +7,7 @@ China CRS offset transforms (WGS-84 ↔ GCJ-02 ↔ BD-09) for DuckDB.
 UX and delivery model follow the PostgreSQL/PostGIS “paste SQL functions into the DB” pattern: one function for points / lines / polygons; callers do not dump vertices. Formula and product reference: [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) (see Acknowledgments).
 
 - **Primary delivery**: `sql/cnshift.sql` (SQL macros + official `spatial`)
-- **Optional**: C++ extension (`ext/`, [planned](ext/README.md))
+- **Optional**: C++ extension (`ext/`, [private binary](ext/README.md))
 - **Not published** to [`duckdb/community-extensions`](https://github.com/duckdb/community-extensions) (legal/compliance). Engineering quality still tracks community norms. See [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGORITHM.md) (numeric behavior aligned with the reference above).
@@ -271,9 +271,9 @@ Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Versio
 
 Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckdb` CLI).
 
-## C++ extension (planned)
+## C++ extension (optional fallback)
 
-See [ext/README.md](ext/README.md). Any remaining root `src/` scaffold is legacy/experimental, **not** the primary install path. Private binary `LOAD` docs will land when the extension track ships.
+Private, unsigned `cnshift.duckdb_extension`. Same six SQL names as the macros; **not** listed on community-extensions. Build / `LOAD` / `allow_unsigned_extensions`: [ext/README.md](ext/README.md). Root `src/` is a pointer, not a second implementation.
 
 ## Docs index
 
@@ -292,7 +292,7 @@ Product shape (SQL-registered CRS transforms over points and geometries) and for
 
 - [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) — PostgreSQL + PostGIS WGS-84 / GCJ-02 / BD-09 (and CGCS2000 wrappers)
 
-This DuckDB implementation is independent (`CREATE MACRO` + Spatial; optional future C++ extension). Public names and distribution differ from the reference; intentional divergences (e.g. Multi* via `ST_Collect` not `ST_Union`) are in [docs/DECISIONS.md](docs/DECISIONS.md).
+This DuckDB implementation is independent (`CREATE MACRO` + Spatial; optional C++ extension). Public names and distribution differ from the reference; intentional divergences (e.g. Multi* via `ST_Collect` not `ST_Union`) are in [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## License
 

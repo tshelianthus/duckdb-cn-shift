@@ -1,0 +1,57 @@
+# name: test/sql/points_golden.test
+# description: Point overloads vs shared testdata/golden/points.csv
+# group: [cnshift]
+
+require cnshift
+
+# UNITTEST_ROOT_DIRECTORY is the repo root (see extension-ci-tools makefile).
+# Expectations come from testdata/golden/ — do not embed a second table.
+
+statement ok
+CREATE OR REPLACE MACRO cn_test_point(op, lat, lon) AS (
+	CASE op
+		WHEN 'wgs84_to_gcj02' THEN wgs84_to_gcj02(lat, lon)
+		WHEN 'gcj02_to_wgs84' THEN gcj02_to_wgs84(lat, lon)
+		WHEN 'gcj02_to_bd09' THEN gcj02_to_bd09(lat, lon)
+		WHEN 'bd09_to_gcj02' THEN bd09_to_gcj02(lat, lon)
+		WHEN 'wgs84_to_bd09' THEN wgs84_to_bd09(lat, lon)
+		WHEN 'bd09_to_wgs84' THEN bd09_to_wgs84(lat, lon)
+		ELSE NULL
+	END
+);
+
+statement ok
+CREATE TABLE point_failures AS
+SELECT id
+FROM (
+	SELECT
+		id,
+		cn_test_point(op, in_lat, in_lon) AS got,
+		expect_lat,
+		expect_lon
+	FROM read_csv_auto('testdata/golden/points.csv')
+)
+WHERE abs(got.lat - expect_lat) > 1e-12
+	OR abs(got.lon - expect_lon) > 1e-12
+	OR got IS NULL;
+
+query I
+SELECT count(*) FROM point_failures;
+----
+0
+
+query I
+SELECT wgs84_to_gcj02(NULL, 121.4737) IS NULL
+	AND wgs84_to_gcj02(31.2304, NULL) IS NULL;
+----
+true
+
+# Combined paths match stepwise composition (docs/ALGORITHM.md §6).
+query I
+SELECT
+	abs(wgs84_to_bd09(31.2304, 121.4737).lat
+		- gcj02_to_bd09(wgs84_to_gcj02(31.2304, 121.4737).lat, wgs84_to_gcj02(31.2304, 121.4737).lon).lat) < 1e-12
+	AND abs(bd09_to_wgs84(31.2304, 121.4737).lat
+		- gcj02_to_wgs84(bd09_to_gcj02(31.2304, 121.4737).lat, bd09_to_gcj02(31.2304, 121.4737).lon).lat) < 1e-12;
+----
+true

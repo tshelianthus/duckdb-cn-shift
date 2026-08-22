@@ -37,12 +37,6 @@ issues:
     blocking: false
     owner: pm-agent
     action: "Follow docs/DECISIONS.md ADR-002."
-  - code: TOOL_UNAVAILABLE
-    severity: warning
-    message: "C++ submodule may be unchecked out; does not block the SQL primary path. Do not git submodule add before ext/ work starts."
-    blocking: false
-    owner: architect-agent
-    action: "SQL first; extension later."
 ---
 
 # duckdb-cn-shift engineering conventions
@@ -66,13 +60,13 @@ Initialization originally landed as a community-extension scaffold. The decided 
 ```
 duckdb-cn-shift/
 ├── sql/cnshift.sql          # primary deliverable
-├── ext/README.md            # extension planned
+├── ext/src/                 # C++ fallback (cnshift.duckdb_extension)
 ├── testdata/golden/         # shared goldens
 ├── docs/DECISIONS.md
 ├── docs/ALGORITHM.md
 ├── docs/bootstrap.md
 ├── .specs/
-├── src/                     # legacy C++ scaffold
+├── src/README.md            # pointer to ext/src
 └── ...
 ```
 

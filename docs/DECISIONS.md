@@ -44,12 +44,12 @@ Engineering standards still align with community norms (cross-platform builds, S
 
 1. **Implement first** the SQL registration path (`INSTALL/LOAD spatial` + `.read sql/cnshift.sql`) so it is usable.
 2. **Separately later** implement the C++ extension path as a fallback / performance / geometry hard-path offering.
-3. `ext/` **currently holds only** `README.md` (planned; see this document). Add the submodule / move the scaffold only when work actually starts. **Do not** run `git submodule add` now.
+3. `ext/` currently holds the C++ fallback (`ext/src/`) plus this document’s install notes. Submodules (`duckdb`, `extension-ci-tools`) are added **because this track is in progress**. Root `CMakeLists.txt` / `Makefile` stay at the repo root (required by `extension-ci-tools`); root `src/` is a pointer, not a second copy. **Do not** open PRs against `duckdb/community-extensions`.
 
 ### Consequences
 
 - Product primary-path docs follow the SQL bootstrap.
-- The existing root-level C++ `extension-template` scaffold may remain for now, but must not block SQL delivery; the formal extension workspace is `ext/`.
+- Formal extension sources live in `ext/src/`; root `src/` must not carry a second copy of the algorithm.
 
 ---
 

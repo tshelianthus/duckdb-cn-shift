@@ -18,17 +18,18 @@ Do not let SQL and C++ maintain forked golden tables. Algorithm changes: update 
 
 CI: `sql/**` changes run a lightweight SQL job and **must not** trigger the full C++ platform matrix ([`docs/CI.md`](../docs/CI.md)).
 
-## C++ extension gates (fallback / legacy scaffold)
+## C++ extension gates (fallback)
 
-When submodules are available and `src/**` / `ext/**` are touched:
+When submodules are available and `ext/**` / `src/**` / build files are touched:
 
-1. `make configure` / `make debug` / `make test_debug`.
+1. `make configure` is not required; `make debug` / `make test_debug` (and release).
 2. Load-smoke (`test/sql/00_load.test`) stays green.
-3. CRS behavior aligns with the SQL track on the same goldens.
+3. CRS behavior aligns with the SQL track on the same goldens (`points_golden.test`, `geometry_golden.test`).
+4. Point out-of-range / NaN / Inf **throw** (`api_errors.test`); SQL macros return NULL for the same inputs.
 
 **Out of scope**: `INSTALL cnshift FROM community` (this repo is not listed on community).
 
-When submodules are not checked out, `make *` must not be forced; see `.cursor/project-context.md`.
+Private `LOAD` + unsigned flag: [`ext/README.md`](../ext/README.md).
 
 ## Phase: point-operator matrix (excerpt)
 
