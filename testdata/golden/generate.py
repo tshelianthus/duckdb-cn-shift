@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Regenerate testdata/golden fixtures from docs/ALGORITHM.md.
+"""Regenerate testdata/golden fixtures for cnshift.
 
-Run from the repository root after changing ALGORITHM.md:
+Run from the repository root:
 
     python3 testdata/golden/generate.py
-
-This script is a fixture generator, not a second algorithm source of truth.
-Constants and formulae must stay identical to docs/ALGORITHM.md.
 """
 
 from __future__ import annotations
@@ -16,7 +13,7 @@ import json
 import math
 from pathlib import Path
 
-# docs/ALGORITHM.md §1
+# Ellipsoid and Empirical Constants
 A = 6378245.0
 EE = 0.006693421622965823
 X_PI = math.pi * 3000.0 / 180.0
@@ -25,7 +22,7 @@ BD_LAT = 0.006
 BD_Z = 0.00002
 BD_THETA = 0.000003
 
-# docs/ALGORITHM.md §7: Shanghai 2000 Constants
+# Shanghai 2000 (SHCS2000) Constants
 SH_A_EFF = 6378153.3398
 SH_E2 = 0.006694380022900787
 SH_EP2 = 0.006739496775498909

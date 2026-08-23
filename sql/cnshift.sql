@@ -1,8 +1,5 @@
 -- cnshift.sql — DuckDB China CRS offset macros (primary delivery)
 --
--- Algorithm constants and formulae: docs/ALGORITHM.md (single source of truth).
--- Do not diverge without updating that document and shared golden fixtures.
---
 -- Product decisions:                 docs/DECISIONS.md
 -- Bootstrap:                         docs/bootstrap.md
 -- Version tags:                      sql-v* (see docs/VERSIONING.md)
@@ -17,7 +14,7 @@
 -- homogeneous collections may collect back as Multi* (documented flatten).
 
 -- ---------------------------------------------------------------------------
--- Kernel (docs/ALGORITHM.md §§1–6)
+-- Kernel Mathematical Definitions
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE MACRO cn__a() AS 6378245.0;                     -- ellipsoid a
@@ -143,7 +140,7 @@ CREATE OR REPLACE MACRO cn__bd09_to_wgs84_xy(lon, lat) AS (
 );
 
 -- ---------------------------------------------------------------------------
--- Shanghai 2000 (SHCS2000) Geodetic Constants & Formulae (docs/ALGORITHM.md §7)
+-- Shanghai 2000 (SHCS2000) Geodetic Constants & Formulae
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE MACRO sh__a_eff() AS 6378153.3398::DOUBLE;

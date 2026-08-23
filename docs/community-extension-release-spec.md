@@ -54,7 +54,7 @@ Each public function covers: normal input, boundaries, illegal input, NULL, batc
 
 ## Private-distribution checklist (replaces community PR checklist)
 
-- [ ] Behavior matches `docs/ALGORITHM.md` / API contract.
+- [ ] Behavior matches API contract.
 - [ ] Shared goldens updated.
 - [ ] Corresponding SQL or extension-track tests pass.
 - [ ] README / bootstrap do not advertise community INSTALL.

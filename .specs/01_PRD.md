@@ -7,7 +7,6 @@
 - **Tech Stack (primary path)**: **Pure SQL `CREATE MACRO` + official `spatial` extension**. Formulas and geometry rebuild are delivered as `sql/cnshift.sql`.
 - **Tech Stack (fallback)**: Same-repo C++ extension (`ext/`, planned) as a later option; engineering quality aligned with community standards, **private distribution**.
 - **Distribution**: **Do not** submit to `duckdb/community-extensions` (**legal/compliance**, not a technical or quality limitation). See [`docs/DECISIONS.md`](../docs/DECISIONS.md).
-- **Algorithm SoT**: [`docs/ALGORITHM.md`](../docs/ALGORITHM.md) is the sole algorithm source of truth; implementations must not maintain separate constants.
 - **Naming**: Repo `duckdb-cn-shift`; public function names in `.specs/03_API_CONTRACT.md`; version tags `sql-v*` / `ext-v*` (see [`docs/VERSIONING.md`](../docs/VERSIONING.md)).
 
 ## 2. Rationale: Why SQL macros first
@@ -22,7 +21,7 @@
 | Tier | Scope | Dependencies |
 | :--- | :--- | :--- |
 | **Tier 0 (MVP / primary path)** | Point `(lat,lon)` STRUCT + `GEOMETRY` (Point/Line/Polygon/Multi*/flat Collection) | Official **`spatial`**. Do not self-link GEOS/GDAL/PROJ. CGCS2000: document that callers first `ST_Transform` to 4326. |
-| **Tier 1 (fallback)** | Same-formula C++ extension | After `ext/` work starts; algorithm still points back to `ALGORITHM.md`. |
+| **Tier 1 (fallback)** | Same-formula C++ extension | Independent C++ extension fallback with shared test validation. |
 
 ## 4. Target Persona & Use Cases
 

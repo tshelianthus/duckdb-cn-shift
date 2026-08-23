@@ -3,7 +3,6 @@
 **Status: implemented (private distribution).** This is **not** the product main path. Prefer [`sql/cnshift.sql`](../sql/cnshift.sql) + `LOAD spatial` unless you need a loadable `cnshift.duckdb_extension`.
 
 - Product decisions, dual-track, **no community submit**: [`docs/DECISIONS.md`](../docs/DECISIONS.md) (ADR-001 / ADR-002 / ADR-009).
-- Algorithm source of truth: [`docs/ALGORITHM.md`](../docs/ALGORITHM.md) (implementations must back-reference; no private constant tables).
 - Public SQL surface: [`.specs/03_API_CONTRACT.md`](../.specs/03_API_CONTRACT.md).
 - Version tags: **`ext-v*`** only (e.g. `ext-v0.1.0`). Do **not** use a bare `v0.1.0`. See [`docs/VERSIONING.md`](../docs/VERSIONING.md).
 - Shared goldens: [`testdata/golden/`](../testdata/golden/) (same fixtures as the SQL track).

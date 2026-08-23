@@ -31,6 +31,4 @@ docs:
     SELECT 1;
 
   extended_description: |
-    SUPERSEDED for community submission. See docs/DECISIONS.md.
     Primary artifact is sql/cnshift.sql with official spatial.
-    Algorithm source of truth: docs/ALGORITHM.md.

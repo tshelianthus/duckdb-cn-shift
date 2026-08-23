@@ -1,6 +1,6 @@
 # cnshift Implementation Expert Review Report
 
-> **Status (2026-08-23)**: Expert decisions **landed** → see authoritative docs [`docs/DECISIONS.md`](DECISIONS.md), [`docs/ALGORITHM.md`](ALGORITHM.md).  
+> **Status (2026-08-23)**: Expert decisions **landed** → see authoritative docs [`docs/DECISIONS.md`](DECISIONS.md).  
 > This document is retained as a review-process archive; where it conflicts with DECISIONS, DECISIONS wins.  
 > **Rejected risk**: R1 below (“SQL cannot reliably rebuild polygons with holes”) — the decision board concluded Spatial’s `ST_MakePolygon(shell, holes[])` + `ST_Boundary` / `ST_Dump` / `ST_ExteriorRing` paths are acceptable; **do not** use “SQL can’t handle holes” as the default go/no-go for switching to C++.
 
@@ -235,13 +235,11 @@ Same WKT inputs:
 
 **Product UX must imitate PG (one function, lines/polygons built in). Numeric, bbox, and inverse strategies should imitate PG source. Multi `ST_Union` and Collection=NULL are recommended intentional improvements, called out in comparison tests.**
 
-**Engineering (decision-board revision)**: Path A (SQL) is the preferred deliverable; polygons with holes are a **SQL must-have**, not a default trigger to Path B. Path B is a deferred fallback. Sole formula SoT: `docs/ALGORITHM.md`.
+**Engineering (decision-board revision)**: Path A (SQL) is the preferred deliverable; polygons with holes are a **SQL must-have**, not a default trigger to Path B. Path B is a deferred fallback.
 
----
+## Appendix A — Public function mapping
 
-## Appendix A — PG public function mapping
-
-| pg-coordtransform | Suggested cnshift |
+| Legacy format | Modern cnshift |
 | :--- | :--- |
 | `geoc_wgs84togcj02` | `wgs84_to_gcj02` |
 | `geoc_gcj02towgs84` | `gcj02_to_wgs84` |
@@ -251,6 +249,6 @@ Same WKT inputs:
 | `geoc_bd09towgs84` | `bd09_to_wgs84` |
 | `geoc_cgcs2000to*` / `*tocgcs2000` | Not implemented; docs: `ST_Transform` → 4326 then call |
 
-## Appendix: Document status
+## Appendix B — Document status
 
-- Authoritative: `docs/DECISIONS.md`, `docs/ALGORITHM.md`, `.specs/03_API_CONTRACT.md`
+- Authoritative: `docs/DECISIONS.md`, `.specs/03_API_CONTRACT.md`

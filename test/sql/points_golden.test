@@ -50,7 +50,7 @@ SELECT wgs84_to_gcj02(NULL, 121.4737) IS NULL
 ----
 true
 
-# Combined paths match stepwise composition (docs/ALGORITHM.md §6).
+# Combined paths match stepwise composition.
 query I
 SELECT
 	abs(wgs84_to_bd09(31.2304, 121.4737).lat

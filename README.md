@@ -13,8 +13,6 @@ Unified function interfaces for points, lines, and polygons without manual verte
 - **Optional**: C++ extension (`ext/`) — [download a prebuilt binary](#c-extension-optional-fallback) or [build from source](ext/README.md#build-from-source)
 - **Not published** to [`duckdb/community-extensions`](https://github.com/duckdb/community-extensions) (legal/compliance). Engineering quality still tracks community norms. See [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
-Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGORITHM.md).
-
 ## How to use (no `make`)
 
 Primary artifact is one SQL file: [`sql/cnshift.sql`](sql/cnshift.sql). Install any [official DuckDB client](https://duckdb.org/docs/current/clients/overview.html). No compilation is required (do not run `make` or attempt `INSTALL cnshift FROM community`). There is no separate language package (`pip` / `install.packages("cnshift")`, etc.).
@@ -333,7 +331,6 @@ Then `LOAD` `build/release/extension/cnshift/cnshift.duckdb_extension` with the 
 | Doc | Content |
 | :--- | :--- |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs: dual-track, no community submit, intentional divergences |
-| [docs/ALGORITHM.md](docs/ALGORITHM.md) | Formulae and constants |
 | [docs/bootstrap.md](docs/bootstrap.md) | Bootstrap / injection |
 | [docs/CI.md](docs/CI.md) | Path filters; `ext-v*` GitHub Release |
 | [docs/metabase.md](docs/metabase.md) | Self-hosted Metabase + community DuckDB driver (optional) |

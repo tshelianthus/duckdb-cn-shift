@@ -6,9 +6,9 @@ namespace duckdb {
 
 namespace {
 
-// docs/ALGORITHM.md §1 — copy these only by back-reference; do not invent a second table.
+// Ellipsoid and Empirical Constants
 constexpr double kA = 6378245.0;
-constexpr double kEe = 0.006693421622965823; // pg geoc_delta; not eviltransform's …94323
+constexpr double kEe = 0.006693421622965823;
 constexpr double kPi = 3.14159265358979323846264338327950288;
 constexpr double kXPi = kPi * 3000.0 / 180.0;
 constexpr double kBdLon = 0.0065;
@@ -16,7 +16,7 @@ constexpr double kBdLat = 0.006;
 constexpr double kBdZ = 0.00002;
 constexpr double kBdTheta = 0.000003;
 
-// docs/ALGORITHM.md §2 — x = lon-105, y = lat-35
+// Empirical Polynomials (x = lon-105, y = lat-35)
 double TransformLat(double x, double y) {
 	double ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * std::sqrt(std::fabs(x));
 	ret += (20.0 * std::sin(6.0 * x * kPi) + 20.0 * std::sin(2.0 * x * kPi)) * 2.0 / 3.0;
@@ -33,7 +33,7 @@ double TransformLon(double x, double y) {
 	return ret;
 }
 
-// docs/ALGORITHM.md §3
+// Delta Offset Calculation
 CnshiftCoord Delta(double lon, double lat) {
 	const double dlon0 = TransformLon(lon - 105.0, lat - 35.0);
 	const double dlat0 = TransformLat(lon - 105.0, lat - 35.0);
@@ -46,7 +46,7 @@ CnshiftCoord Delta(double lon, double lat) {
 	return {dlat, dlon};
 }
 
-// docs/ALGORITHM.md §7 — Shanghai 2000 (SHCS2000) Geodetic Constants
+// Shanghai 2000 (SHCS2000) Geodetic Constants
 constexpr double kShAEff = 6378153.3398;
 constexpr double kShE2 = 0.006694380022900787;
 constexpr double kShEp2 = 0.006739496775498909;
@@ -80,7 +80,6 @@ CnshiftCoord Wgs84ToGcj02(double lat, double lon) {
 }
 
 CnshiftCoord Gcj02ToWgs84(double lat, double lon) {
-	// docs/ALGORITHM.md §4.3 — one-shot 2p - forward(p); not iterative.
 	if (!InChinaBbox(lat, lon)) {
 		return {lat, lon};
 	}
@@ -89,7 +88,6 @@ CnshiftCoord Gcj02ToWgs84(double lat, double lon) {
 }
 
 CnshiftCoord Gcj02ToBd09(double lat, double lon) {
-	// docs/ALGORITHM.md §5 — BD segment also applies the China bbox (pg source).
 	if (!InChinaBbox(lat, lon)) {
 		return {lat, lon};
 	}

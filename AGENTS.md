@@ -7,7 +7,6 @@ You are an expert systems engineer working on `duckdb-cn-shift` (China CRS offse
 - **Primary path**: SQL macros — `sql/cnshift.sql` + `INSTALL/LOAD spatial` + `.read` (see `docs/bootstrap.md`).
 - **Fallback path**: C++ extension — `ext/src/` → `cnshift.duckdb_extension` (private / unsigned). Root `src/` is a pointer only.
 - **No community submission**: This repository **does not** submit to `duckdb/community-extensions` (legal/compliance, not a technical reason). See `docs/DECISIONS.md`.
-- **Sole algorithm source of truth**: `docs/ALGORITHM.md`. Implementations may only reference it; do not maintain separate constants.
 - **Version tags**: `sql-v*` / `ext-v*` (`docs/VERSIONING.md`); no bare `v0.1.0`. Pushing `ext-v*` on a **`main`** commit attaches unsigned binaries to a GitHub Release (not community). Do not tag `dev` for downloads.
 - **Languages**: Primary SQL deliverable is DuckDB SQL; extension track is **C++17**. Do not introduce Cargo/Rust. Do not self-link GEOS/GDAL/PROJ.
 

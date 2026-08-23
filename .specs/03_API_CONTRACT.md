@@ -2,8 +2,7 @@
 
 The public SQL surface provides unified coordinate conversions for scalar points and `GEOMETRY` objects with single-function convenience; vertex traversal stays inside the implementation.
 
-- **Primary deliverable**: startup-injected SQL (`CREATE MACRO`); see Bootstrap.
-- **Fallback**: a C++ extension exposes the same surface; algorithms must point back to [`docs/ALGORITHM.md`](../docs/ALGORITHM.md).
+- **Fallback**: a C++ extension exposes the same surface with identical mathematical behavior.
 - **Decisions**: [`docs/DECISIONS.md`](../docs/DECISIONS.md). Not listed on community.
 
 ---
@@ -54,8 +53,6 @@ GEOMETRY → GEOMETRY
 | GCJ-02 | Mars coordinates |
 | BD-09 | Baidu coordinates (further offset on top of GCJ) |
 | SHCS2000 | Shanghai Coordinate System 2000 (Gauss–Krüger projected planar, meters) |
-
-Formulae and projection constants are documented in `ALGORITHM.md`.
 
 ---
 

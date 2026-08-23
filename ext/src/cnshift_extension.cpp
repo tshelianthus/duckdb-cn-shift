@@ -16,9 +16,6 @@
 
 namespace duckdb {
 
-// Algorithm constants and formulae: docs/ALGORITHM.md (single source of truth).
-// Do not diverge without updating that document and shared golden fixtures.
-
 static LogicalType MakeLatLonStructType() {
 	child_list_t<LogicalType> children;
 	children.emplace_back("lat", LogicalType::DOUBLE);

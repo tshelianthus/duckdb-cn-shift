@@ -35,4 +35,4 @@ Invalid lat/lon (out of range / NaN / Inf) → point overload returns `NULL` (ma
 
 Golden tests: `bash test/sql/run_sql_track.sh` ([`testdata/golden/`](../testdata/golden/)).
 
-Constants: [`ALGORITHM.md`](ALGORITHM.md); tags: [`VERSIONING.md`](VERSIONING.md).
+Version tags: [`VERSIONING.md`](VERSIONING.md).

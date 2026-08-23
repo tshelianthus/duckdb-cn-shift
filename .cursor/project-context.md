@@ -49,7 +49,7 @@ issues:
 2. **Fallback**: C++ `cnshift` extension (`ext/` planned) — privately distributed binary.
 3. **Legal boundary**: Do not submit to `duckdb/community-extensions`; reason is compliance, not insufficient quality.
 
-Sole algorithm source of truth: `docs/ALGORITHM.md`. Decisions: `docs/DECISIONS.md`.
+Decisions: `docs/DECISIONS.md`.
 
 ## Difference from the old “Community Extension as sole product” positioning
 
@@ -63,7 +63,6 @@ duckdb-cn-shift/
 ├── ext/src/                 # C++ fallback (cnshift.duckdb_extension)
 ├── testdata/golden/         # shared goldens
 ├── docs/DECISIONS.md
-├── docs/ALGORITHM.md
 ├── docs/bootstrap.md
 ├── .specs/
 ├── src/README.md            # pointer to ext/src

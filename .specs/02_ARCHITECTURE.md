@@ -9,8 +9,6 @@
 
 Both are privately distributed with engineering quality aligned to community standards; **not listed** on community-extensions ([`docs/DECISIONS.md`](../docs/DECISIONS.md)).
 
-**Sole algorithm source of truth**: [`docs/ALGORITHM.md`](../docs/ALGORITHM.md).
-
 ## 2. Why this maps to pg-coordtransform
 
 | pg-coordtransform | cnshift (DuckDB) |
@@ -25,7 +23,7 @@ User path: `startup inject → SELECT f(geom)`; intermediate loops must not appe
 
 ## 3. Layering inside `cnshift.sql`
 
-1. **Kernel**: bbox, `transform_lat/lon`, `delta`, WGS↔GCJ, GCJ↔BD (constants point back to ALGORITHM).
+1. **Kernel**: bbox, `transform_lat/lon`, `delta`, WGS↔GCJ, GCJ↔BD, SHCS2000 projections.
 2. **Point glue**: `STRUCT(lat,lon)`; geometry Point ↔ `ST_X`/`ST_Y`.
 3. **Vertex map**: LineString → `generate_series` / `ST_PointN` / `ST_MakeLine`.
 4. **Ring / Polygon**: `ST_ExteriorRing` / `ST_Boundary`→`ST_Dump` → `ST_MakePolygon(shell, holes[])` (polygons with holes are a required capability, not “SQL can’t do holes”).
@@ -47,7 +45,6 @@ duckdb-cn-shift/
 ├── testdata/golden/         # golden fixtures shared by SQL and C++
 ├── docs/
 │   ├── DECISIONS.md
-│   ├── ALGORITHM.md
 │   ├── bootstrap.md
 │   ├── VERSIONING.md
 │   └── CI.md

@@ -8,7 +8,7 @@ C++ CI **quality bar matches** [`duckdb/extension-template`](https://github.com/
 
 | Job | Trigger paths | Work |
 | :--- | :--- | :--- |
-| **sql-smoke** (light) | `sql/**`, `testdata/golden/**`, `docs/ALGORITHM.md`, `docs/bootstrap.md`, SQL-track tests | `INSTALL/LOAD spatial` → `.read sql/cnshift.sql` → golden / SQLLogic-style asserts |
+| **sql-smoke** (light) | `sql/**`, `testdata/golden/**`, `docs/bootstrap.md`, SQL-track tests | `INSTALL/LOAD spatial` → `.read sql/cnshift.sql` → golden / SQLLogic-style asserts |
 | **ext-matrix** (full) | `ext/**`, `src/**`, `test/sql/*.test`, `CMakeLists.txt`, `Makefile`, `extension_config.cmake`, `vcpkg.json`, `.gitmodules`, extension workflows | Community-equivalent C++ gates (below) |
 | **ext GitHub Release** | `ext-v*` tags whose commit is on `main` | Guard → rebuild full matrix → attach unsigned binaries |
 
