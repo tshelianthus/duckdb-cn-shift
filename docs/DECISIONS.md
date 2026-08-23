@@ -53,18 +53,16 @@ Engineering standards still align with community norms (cross-platform builds, S
 
 ---
 
-## ADR-004 — `docs/ALGORITHM.md` is the sole algorithm source of truth
+## ADR-004 — Codebase-contained mathematical routines and parity
 
 ### Decision
 
-Ellipsoid constants, delta formulae, China bbox, BD polar constants, one-shot GCJ→WGS inversion, and related material are **all** written in [`docs/ALGORITHM.md`](ALGORITHM.md).
-
-Future SQL and C++ implementations **may only reference** that document (comments / README links). They **must not** each maintain a separate constant table or drifting formulae.
+Ellipsoid constants, delta formulae, China bbox, BD polar constants, one-shot GCJ→WGS inversion, and SHCS2000 projections are implemented directly in `sql/cnshift.sql` and mirrored in `ext/src/` C++ kernels.
 
 ### Consequences
 
-- Formula changes must update `ALGORITHM.md` first, then both implementations and the shared golden tests.
-- Hard-coded constants with no back-reference found in code review → treat as a defect.
+- Formula implementations must maintain exact parity across SQL macros, C++ kernels, and shared golden tests.
+- Shared regression tests in `testdata/golden/` serve as the empirical validation baseline.
 
 ---
 
@@ -105,22 +103,22 @@ Details: [`docs/CI.md`](CI.md) and comments in `.github/workflows/MainDistributi
 
 ---
 
-## ADR-008 — Behavioral fidelity and intentional deviations
+## ADR-008 — Behavioral specifications and geometry handling decisions
 
-Aligned with [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) and post-expert-review decisions:
+Design decisions for geometry transforms:
 
-| Topic | Decision | vs PG |
+| Topic | Decision | Note |
 | :--- | :--- | :--- |
-| Multi* rebuild | `ST_Collect` / `ST_Multi`; **do not** use `ST_Union` | **Intentional deviation** (avoid merging adjacent parts) |
-| GeometryCollection | Support flat dump→transform→collect; nested Collections may be limited depth, or deferred to C++ | **Intentional improvement** (PG uses ELSE→NULL) |
-| Polygon with holes | Rely on Spatial: `ST_MakePolygon(shell, holes[])` + `ST_Boundary` / `ST_Dump` / `ST_ExteriorRing`, etc. | **Follow capability, not API names**; reject the outdated claim that “SQL cannot handle holes” |
-| BD segment + China bbox | BD point functions also apply bbox (matches pg source) | **Follow PG** |
-| GCJ→WGS | One-shot `2p - forward(p)`, not iterative | **Follow PG** |
-| CGCS2000 | **Do not** implement same-named APIs; document `ST_Transform` to 4326 first | **Reduced surface** (PG has wrapper functions) |
-| Public function names | `wgs84_to_gcj02`, etc.; docs include `geoc_*` mapping | **Naming deviation** (UX alignment) |
-| Numeric constants / delta | See `ALGORITHM.md` (aligned with pg `geoc_delta`) | **Follow PG** |
+| Multi* rebuild | `ST_Collect` / `ST_Multi`; **do not** use `ST_Union` | Avoid merging adjacent parts |
+| GeometryCollection | Support flat dump→transform→collect; nested Collections handled via leaf extraction | Preserve heterogeneous collections |
+| Polygon with holes | Rely on Spatial: `ST_MakePolygon(shell, holes[])` + `ST_Boundary` / `ST_Dump` / `ST_ExteriorRing`, etc. | Robust interior ring handling |
+| BD segment + China bbox | BD point functions apply bbox checks | Identity transform outside bounding box |
+| GCJ→WGS | One-shot `2p - forward(p)` | Fast non-iterative inversion |
+| CGCS2000 | **Do not** implement redundant wrapper APIs; document `ST_Transform` to 4326 first | Clean, minimal surface |
+| Public function names | `wgs84_to_gcj02`, `wgs84_to_shcs2000`, etc. | Concise and ergonomic |
+| Numeric constants / delta | Standard empirical models | Embedded in code & verified via goldens |
 
-Geometry paths transform XY only; **no guarantee** of topology preservation, seamlessness, or no self-intersections (same class of limits as PG).
+Geometry paths transform XY only; **no guarantee** of topology preservation, seamlessness, or absence of self-intersections.
 
 ---
 
@@ -149,7 +147,6 @@ Users who want a loadable `cnshift.duckdb_extension` without running `make` down
 
 | Document | Role |
 | :--- | :--- |
-| [`ALGORITHM.md`](ALGORITHM.md) | Sole algorithm source of truth |
 | [`bootstrap.md`](bootstrap.md) | SQL bootstrap injection |
 | [`VERSIONING.md`](VERSIONING.md) | Dual-track tags; `ext-v*` → GitHub Release assets |
 | [`CI.md`](CI.md) | Paths strategy + GitHub Release workflow |

@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Regenerate testdata/golden fixtures from docs/ALGORITHM.md.
+"""Regenerate testdata/golden fixtures for cnshift.
 
-Run from the repository root after changing ALGORITHM.md:
+Run from the repository root:
 
     python3 testdata/golden/generate.py
-
-This script is a fixture generator, not a second algorithm source of truth.
-Constants and formulae must stay identical to docs/ALGORITHM.md.
 """
 
 from __future__ import annotations
@@ -16,7 +13,7 @@ import json
 import math
 from pathlib import Path
 
-# docs/ALGORITHM.md §1
+# Ellipsoid and Empirical Constants
 A = 6378245.0
 EE = 0.006693421622965823
 X_PI = math.pi * 3000.0 / 180.0
@@ -24,6 +21,25 @@ BD_LON = 0.0065
 BD_LAT = 0.006
 BD_Z = 0.00002
 BD_THETA = 0.000003
+
+# Shanghai 2000 (SHCS2000) Constants
+SH_A_EFF = 6378153.3398
+SH_E2 = 0.006694380022900787
+SH_EP2 = 0.006739496775498909
+SH_L0 = 121.46444444444444
+SH_L0_RAD = SH_L0 * math.pi / 180.0
+SH_X_ORIG = 3457087.73141366
+SH_Y_ORIG = 257.85859273
+
+SH_K0 = 6367465.458133294
+SH_K2 = 16038.549782158
+SH_K4 = 16.832642939
+SH_K6 = 0.021981053
+SH_M0_BAR = 6367465.45832782
+SH_C1 = 0.002518826597
+SH_C2 = 0.000003700949
+SH_C3 = 0.000000007448
+SH_C4 = 0.000000000017
 
 HERE = Path(__file__).resolve().parent
 OPS = (
@@ -33,6 +49,7 @@ OPS = (
     "bd09_to_gcj02",
     "wgs84_to_bd09",
     "bd09_to_wgs84",
+    "wgs84_to_shcs2000",
 )
 
 
@@ -107,6 +124,36 @@ def bd09_to_wgs84(lon: float, lat: float) -> tuple[float, float]:
     return gcj02_to_wgs84(*bd09_to_gcj02(lon, lat))
 
 
+def wgs84_to_shcs2000(lon: float, lat: float) -> tuple[float, float]:
+    b = lat * math.pi / 180.0
+    l = lon * math.pi / 180.0 - SH_L0_RAD
+    sin_b = math.sin(b)
+    cos_b = math.cos(b)
+    t = math.tan(b)
+    n = SH_A_EFF / math.sqrt(1.0 - SH_E2 * sin_b ** 2)
+    eta2 = SH_EP2 * (cos_b ** 2)
+    x_arc = SH_K0 * b - SH_K2 * math.sin(2.0 * b) + SH_K4 * math.sin(4.0 * b) - SH_K6 * math.sin(6.0 * b)
+    x_std = x_arc + n * sin_b * cos_b * (l ** 2) / 2.0 + n * sin_b * (cos_b ** 3) * (5.0 - t ** 2 + 9.0 * eta2 + 4.0 * (eta2 ** 2)) * (l ** 4) / 24.0
+    y_std = n * cos_b * l + n * (cos_b ** 3) * (1.0 - t ** 2 + eta2) * (l ** 3) / 6.0
+    return y_std - SH_Y_ORIG, x_std - SH_X_ORIG
+
+
+def shcs2000_to_wgs84(x: float, y: float) -> tuple[float, float]:
+    x_std = y + SH_X_ORIG
+    y_std = x + SH_Y_ORIG
+    mu = x_std / SH_M0_BAR
+    bf = mu + SH_C1 * math.sin(2.0 * mu) + SH_C2 * math.sin(4.0 * mu) + SH_C3 * math.sin(6.0 * mu) + SH_C4 * math.sin(8.0 * mu)
+    sin_bf = math.sin(bf)
+    cos_bf = math.cos(bf)
+    t_f = math.tan(bf)
+    eta_f2 = SH_EP2 * (cos_bf ** 2)
+    nf = SH_A_EFF / math.sqrt(1.0 - SH_E2 * sin_bf ** 2)
+    mf = SH_A_EFF * (1.0 - SH_E2) / ((1.0 - SH_E2 * sin_bf ** 2) ** 1.5)
+    lat = (bf - (t_f / (2.0 * mf * nf)) * (y_std ** 2) + (t_f / (24.0 * mf * (nf ** 3))) * (5.0 + 3.0 * (t_f ** 2) + eta_f2 - 9.0 * eta_f2 * (t_f ** 2)) * (y_std ** 4)) * 180.0 / math.pi
+    l = ((1.0 / (nf * cos_bf)) * y_std - ((1.0 + 2.0 * (t_f ** 2) + eta_f2) / (6.0 * (nf ** 3) * cos_bf)) * (y_std ** 3) + ((5.0 + 28.0 * (t_f ** 2) + 24.0 * (t_f ** 4)) / (120.0 * (nf ** 5) * cos_bf)) * (y_std ** 5)) * 180.0 / math.pi
+    return SH_L0 + l, lat
+
+
 APPLY = {
     "wgs84_to_gcj02": wgs84_to_gcj02,
     "gcj02_to_wgs84": gcj02_to_wgs84,
@@ -114,6 +161,8 @@ APPLY = {
     "bd09_to_gcj02": bd09_to_gcj02,
     "wgs84_to_bd09": wgs84_to_bd09,
     "bd09_to_wgs84": bd09_to_wgs84,
+    "wgs84_to_shcs2000": wgs84_to_shcs2000,
+    "shcs2000_to_wgs84": shcs2000_to_wgs84,
 }
 
 
@@ -396,7 +445,7 @@ def write_geometries() -> None:
     for spec in specs:
         kind = spec["kind"]
         data = spec["data"]
-        for op in ("wgs84_to_gcj02", "gcj02_to_bd09"):
+        for op in ("wgs84_to_gcj02", "gcj02_to_bd09", "wgs84_to_shcs2000"):
             out_data = transform_data(kind, data, op)
             expect_vertices = vertices_of(kind, out_data)
             if spec.get("flatten"):

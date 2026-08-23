@@ -3,16 +3,15 @@
 ## 1. Vision & Objectives
 
 - **Target**: Provide China CRS offset conversion functions that can be called directly from DuckDB SQL.
-- **Positioning**: Cover WGS-84 ↔ GCJ-02 (Mars coordinates) ↔ BD-09 (Baidu coordinates); support **points, lines, polygons, and multi-part geometries** with a one-function UX on par with `geocompass/pg-coordtransform`: `SELECT wgs84_to_gcj02(geom)` — callers do not dump vertices or write loops by hand.
-- **Tech Stack (primary path)**: **Pure SQL `CREATE MACRO` + official `spatial` extension**. Formulas and geometry rebuild are delivered as `sql/cnshift.sql` (aligned with pg-coordtransform’s “copy SQL and run” distribution model).
+- **Positioning**: Cover WGS-84 ↔ GCJ-02 (Mars coordinates) ↔ BD-09 (Baidu coordinates) ↔ SHCS2000; support **points, lines, polygons, and multi-part geometries** with a one-function UX: `SELECT wgs84_to_gcj02(geom)` — callers do not dump vertices or write loops by hand.
+- **Tech Stack (primary path)**: **Pure SQL `CREATE MACRO` + official `spatial` extension**. Formulas and geometry rebuild are delivered as `sql/cnshift.sql`.
 - **Tech Stack (fallback)**: Same-repo C++ extension (`ext/`, planned) as a later option; engineering quality aligned with community standards, **private distribution**.
 - **Distribution**: **Do not** submit to `duckdb/community-extensions` (**legal/compliance**, not a technical or quality limitation). See [`docs/DECISIONS.md`](../docs/DECISIONS.md).
-- **Algorithm SoT**: [`docs/ALGORITHM.md`](../docs/ALGORITHM.md) is the sole algorithm source of truth; implementations must not maintain separate constants.
 - **Naming**: Repo `duckdb-cn-shift`; public function names in `.specs/03_API_CONTRACT.md`; version tags `sql-v*` / `ext-v*` (see [`docs/VERSIONING.md`](../docs/VERSIONING.md)).
 
-## 2. Rationale: Why SQL macros first (pg-coordtransform style)
+## 2. Rationale: Why SQL macros first
 
-- **UX alignment**: The PG solution’s value is “load once → convert lines/polygons directly.” DuckDB hides dump → transform points → rebuild inside macros via `CREATE MACRO` + Spatial.
+- **UX alignment**: “Load once → convert lines/polygons directly.” DuckDB hides dump → transform points → rebuild inside macros via `CREATE MACRO` + Spatial.
 - **Inject at startup**: `INSTALL/LOAD spatial` + `.read sql/cnshift.sql` (see [`docs/bootstrap.md`](../docs/bootstrap.md)).
 - **Stay off community**: Reduces distribution surface and compliance risk; SQL is friendlier for CLI / Python / DBeaver / intranet use.
 - **C++ later**: Ensure SQL works first, then offer the extension as a fallback (performance / nested Collections, etc.).
@@ -22,7 +21,7 @@
 | Tier | Scope | Dependencies |
 | :--- | :--- | :--- |
 | **Tier 0 (MVP / primary path)** | Point `(lat,lon)` STRUCT + `GEOMETRY` (Point/Line/Polygon/Multi*/flat Collection) | Official **`spatial`**. Do not self-link GEOS/GDAL/PROJ. CGCS2000: document that callers first `ST_Transform` to 4326. |
-| **Tier 1 (fallback)** | Same-formula C++ extension | After `ext/` work starts; algorithm still points back to `ALGORITHM.md`. |
+| **Tier 1 (fallback)** | Same-formula C++ extension | Independent C++ extension fallback with shared test validation. |
 
 ## 4. Target Persona & Use Cases
 

@@ -2,19 +2,19 @@
 
 ## Decision anchors
 
-- Dual-track, SQL-first, not on community, ALGORITHM as SoT, shared goldens, separate tags: [`docs/DECISIONS.md`](../docs/DECISIONS.md).
+- Dual-track, SQL-first, not on community, shared goldens, separate tags: [`docs/DECISIONS.md`](../docs/DECISIONS.md).
 - **Do not** open a PR against `duckdb/community-extensions`.
 - Submodules (`duckdb`, `extension-ci-tools`) live at **repo root** (not under `ext/`) because `extension-ci-tools` expects that layout.
 
 ## [x] Phase D0: Docs and directory layout (this iteration)
 
-- [x] `docs/DECISIONS.md` / `ALGORITHM.md` / `bootstrap.md` / `VERSIONING.md` / `CI.md`
+- [x] `docs/DECISIONS.md` / `bootstrap.md` / `VERSIONING.md` / `CI.md`
 - [x] `sql/` placeholder + `ext/README.md` + `testdata/golden/README.md`
 - [x] Specs / README / AGENTS / community docs archive aligned
 
 ## [x] Phase S1: SQL kernel (points)
 
-- [x] Implement bbox / transform / delta / six-point conversions in `sql/cnshift.sql` (constants point back to ALGORITHM)
+- [x] Implement bbox / transform / delta / point conversions in `sql/cnshift.sql`
 - [x] Point STRUCT API + golden point fixtures
 - [x] Bootstrap smoke docs and minimal automation (`.github/workflows/sql-smoke.yml`)
 

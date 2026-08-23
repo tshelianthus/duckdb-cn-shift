@@ -2,15 +2,16 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-China CRS offset transforms (WGS-84 ↔ GCJ-02 ↔ BD-09) for DuckDB.
+> [!WARNING]
+> **DISCLAIMER & COMPLIANCE WARNING**: This software provides mathematical approximations based on open-source community empirical models. It is **NOT** an official surveying standard, carries **NO** official certification or legal validity, and is strictly prohibited for commercial surveying, cadastral mapping, or navigation. Users must independently ensure compliance with all applicable surveying and geospatial data regulations. See [DISCLAIMER.md](DISCLAIMER.md).
 
-UX and delivery model follow the PostgreSQL/PostGIS “paste SQL functions into the DB” pattern: one function for points / lines / polygons; callers do not dump vertices. Formula and product reference: [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) (see Acknowledgments).
+SQL macros and utility functions for geometric coordinate transformations in DuckDB.
+
+Provides unified mathematical transform interfaces for spatial analytics across points, lines, and polygons.
 
 - **Primary delivery**: `sql/cnshift.sql` (SQL macros + official `spatial`)
 - **Optional**: C++ extension (`ext/`) — [download a prebuilt binary](#c-extension-optional-fallback) or [build from source](ext/README.md#build-from-source)
 - **Not published** to [`duckdb/community-extensions`](https://github.com/duckdb/community-extensions) (legal/compliance). Engineering quality still tracks community norms. See [`docs/DECISIONS.md`](docs/DECISIONS.md).
-
-Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGORITHM.md) (numeric behavior aligned with the reference above).
 
 ## How to use (no `make`)
 
@@ -262,16 +263,22 @@ No CGCS2000-named APIs: `ST_Transform` to EPSG:4326 first. Bootstrap notes: [doc
 
 ## Public functions (contract)
 
-| Function | Point | Geometry |
-| :--- | :--- | :--- |
-| `wgs84_to_gcj02` | `(lat, lon) → STRUCT` | `(geom) → GEOMETRY` |
-| `gcj02_to_wgs84` | same | same |
-| `gcj02_to_bd09` | same | same |
-| `bd09_to_gcj02` | same | same |
-| `wgs84_to_bd09` | same | same |
-| `bd09_to_wgs84` | same | same |
+| Function | Point | Geometry | Description |
+| :--- | :--- | :--- | :--- |
+| `wgs84_to_gcj02` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | WGS-84 to GCJ-02 |
+| `gcj02_to_wgs84` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | GCJ-02 to WGS-84 |
+| `gcj02_to_bd09` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | GCJ-02 to BD-09 |
+| `bd09_to_gcj02` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | BD-09 to GCJ-02 |
+| `wgs84_to_bd09` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | WGS-84 to BD-09 |
+| `bd09_to_wgs84` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | BD-09 to WGS-84 |
+| `wgs84_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | WGS-84 to SHCS2000 (meters) |
+| `shcs2000_to_wgs84` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (meters) to WGS-84 |
+| `gcj02_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | GCJ-02 to SHCS2000 (meters) |
+| `shcs2000_to_gcj02` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (meters) to GCJ-02 |
+| `bd09_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | BD-09 to SHCS2000 (meters) |
+| `shcs2000_to_bd09` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (meters) to BD-09 |
 
-Invalid or non-finite coordinates return `NULL` in the SQL macro track, and raise `OutOfRangeException` in the C++ extension. Outside the China bounding box, coordinates pass through unchanged. Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
+Invalid or non-finite coordinates return `NULL` in the SQL macro track, and raise `OutOfRangeException` in the C++ extension. Outside the China bounding box, coordinates pass through unchanged (for geographic transforms). Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
 
 Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckdb` CLI).
 
@@ -324,7 +331,6 @@ Then `LOAD` `build/release/extension/cnshift/cnshift.duckdb_extension` with the 
 | Doc | Content |
 | :--- | :--- |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs: dual-track, no community submit, intentional divergences |
-| [docs/ALGORITHM.md](docs/ALGORITHM.md) | Formulae and constants |
 | [docs/bootstrap.md](docs/bootstrap.md) | Bootstrap / injection |
 | [docs/CI.md](docs/CI.md) | Path filters; `ext-v*` GitHub Release |
 | [docs/metabase.md](docs/metabase.md) | Self-hosted Metabase + community DuckDB driver (optional) |
@@ -332,13 +338,19 @@ Then `LOAD` `build/release/extension/cnshift/cnshift.duckdb_extension` with the 
 
 ## Acknowledgments
 
-Product shape (SQL-registered CRS transforms over points and geometries) and formula organization draw on:
+This project acknowledges [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) for inspiring the SQL macro functional layout and coordinate offset patterns.
 
-- [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) — PostgreSQL + PostGIS WGS-84 / GCJ-02 / BD-09 (and CGCS2000 wrappers)
+## Disclaimer
 
-This DuckDB implementation is independent (`CREATE MACRO` + Spatial; optional C++ extension). Public names and distribution differ from the reference; intentional divergences (e.g. Multi* via `ST_Collect` not `ST_Union`) are in [docs/DECISIONS.md](docs/DECISIONS.md).
+This software is provided "AS IS", without warranty of any kind. 
+
+1. **Purpose Limitation**: Intended strictly for technical computing, internal data cleaning, and experimental analytics. Prohibited for state secrets, military installations, or commercial mapping requiring statutory licenses.
+2. **User Responsibility**: Users bear sole responsibility for regulatory compliance, legal data sourcing, and obtaining requisite licenses under applicable surveying and data security laws.
+3. **Approximation & No Warranty**: Algorithms are open-source community empirical approximations carrying zero legal validity and no surveying accuracy warranty.
+4. **Limitation of Liability**: Authors and contributors assume no liability for any direct, indirect, regulatory, or consequential damages.
+
+For full terms and user confirmation conditions, see [DISCLAIMER.md](DISCLAIMER.md).
 
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
-This license covers this repository only; the reference project keeps its own license.

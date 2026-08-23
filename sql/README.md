@@ -35,7 +35,6 @@ Expectations come from [`testdata/golden/`](../testdata/golden/).
 
 ## Implementation constraints
 
-- **Algorithm constants / formulae**: only back-reference [`docs/ALGORITHM.md`](../docs/ALGORITHM.md); do not maintain a second constant table here.
 - **Product decisions / intentional divergences**: [`docs/DECISIONS.md`](../docs/DECISIONS.md) (Multi* uses `ST_Collect` / `ST_Multi`, not `ST_Union`).
 - **CGCS2000**: no same-named API; `ST_Transform` to EPSG:4326 first.
 - **No community submit**: private distribution; do not PR to `duckdb/community-extensions`.

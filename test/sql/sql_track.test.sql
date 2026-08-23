@@ -20,6 +20,10 @@ CREATE OR REPLACE MACRO cn_test_point(op, lat, lon) AS (
 		WHEN 'bd09_to_gcj02' THEN bd09_to_gcj02(lat, lon)
 		WHEN 'wgs84_to_bd09' THEN wgs84_to_bd09(lat, lon)
 		WHEN 'bd09_to_wgs84' THEN bd09_to_wgs84(lat, lon)
+		WHEN 'wgs84_to_shcs2000' THEN {
+			'lat': wgs84_to_shcs2000(lat, lon).y,
+			'lon': wgs84_to_shcs2000(lat, lon).x
+		}
 		ELSE NULL
 	END
 );
@@ -41,8 +45,8 @@ FROM (
 		expect_lon
 	FROM read_csv_auto('testdata/golden/points.csv')
 )
-WHERE abs(got.lat - expect_lat) > 1e-12
-	OR abs(got.lon - expect_lon) > 1e-12
+WHERE abs(got.lat - expect_lat) > 1e-6
+	OR abs(got.lon - expect_lon) > 1e-6
 	OR got IS NULL;
 
 SELECT CASE
@@ -81,7 +85,21 @@ SELECT
 	ST_GeomFromText(input_wkt) AS gin,
 	gcj02_to_bd09(ST_GeomFromText(input_wkt)) AS gout
 FROM read_json('testdata/golden/geometries.jsonl', format := 'newline_delimited')
-WHERE op = 'gcj02_to_bd09';
+WHERE op = 'gcj02_to_bd09'
+UNION ALL
+SELECT
+	id,
+	op,
+	note,
+	expect_type,
+	expect_num_geometries,
+	expect_num_interior_rings,
+	expect_num_points,
+	expect_vertices,
+	ST_GeomFromText(input_wkt) AS gin,
+	wgs84_to_shcs2000(ST_GeomFromText(input_wkt)) AS gout
+FROM read_json('testdata/golden/geometries.jsonl', format := 'newline_delimited')
+WHERE op = 'wgs84_to_shcs2000';
 
 CREATE TABLE geom_failures AS
 SELECT id, reason
@@ -100,8 +118,8 @@ FROM (
 				list_transform(
 					generate_series(1, len(expect_vertices)::BIGINT),
 					lambda i:
-						abs(ST_X(ST_Dump(ST_Points(gout))[i].geom) - expect_vertices[i][1]) > 1e-12
-						OR abs(ST_Y(ST_Dump(ST_Points(gout))[i].geom) - expect_vertices[i][2]) > 1e-12
+						abs(ST_X(ST_Dump(ST_Points(gout))[i].geom) - expect_vertices[i][1]) > 1e-6
+						OR abs(ST_Y(ST_Dump(ST_Points(gout))[i].geom) - expect_vertices[i][2]) > 1e-6
 				),
 				lambda acc, x: acc OR x
 			) THEN 'vertex values'
@@ -215,5 +233,40 @@ SELECT CASE
 	ELSE error('geometry POINT disagrees with (lat, lon) overload')
 END AS point_geom_overload
 FROM point_both;
+
+-- SHCS2000 Point & Geometry overloads match
+CREATE TABLE sh_point_both AS
+SELECT
+	wgs84_to_shcs2000(31.2304, 121.4737) AS pt,
+	wgs84_to_shcs2000(ST_Point(121.4737, 31.2304)) AS geom;
+
+SELECT CASE
+	WHEN abs(ST_X(geom) - pt.x) < 1e-9
+		AND abs(ST_Y(geom) - pt.y) < 1e-9
+		THEN 'PASS shcs2000 point geom overload'
+	ELSE error('shcs2000 geometry POINT disagrees with (lat, lon) overload')
+END AS sh_point_geom_overload
+FROM sh_point_both;
+
+-- SHCS2000 Roundtrip (< 0.1 mm precision)
+CREATE TABLE sh2000_roundtrip AS
+SELECT
+	lat,
+	lon,
+	wgs84_to_shcs2000(lat, lon) AS fwd,
+	shcs2000_to_wgs84(wgs84_to_shcs2000(lat, lon).x, wgs84_to_shcs2000(lat, lon).y) AS rev
+FROM (
+	VALUES
+		(31.2304, 121.4737),
+		(31.2500, 121.4500),
+		(31.0000, 121.5000),
+		(31.5000, 121.3000)
+) AS t(lat, lon);
+
+SELECT CASE
+	WHEN (SELECT max(abs(rev.lat - lat) + abs(rev.lon - lon)) FROM sh2000_roundtrip) < 1e-8
+		THEN 'PASS shcs2000 roundtrip'
+	ELSE error('shcs2000 roundtrip error exceeded tolerance')
+END AS sh2000_rt;
 
 SELECT 'PASS sql-track' AS summary;

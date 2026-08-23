@@ -7,7 +7,7 @@
 | **SQL (primary)** | `LOAD spatial` + `.read sql/cnshift.sql` + assertion scripts | **`testdata/golden/`** (shared) |
 | **C++ (fallback)** | `make test_debug` / SQLLogicTest (`test/sql/`) | **The same** `testdata/golden/` |
 
-Do not let SQL and C++ maintain forked golden tables. Algorithm changes: update `docs/ALGORITHM.md` first → then goldens → then both sides’ tests. See [`docs/DECISIONS.md`](../docs/DECISIONS.md).
+Do not let SQL and C++ maintain forked golden tables. Coordinate transformation behavior changes must update goldens and both sides' tests in sync. See [`docs/DECISIONS.md`](../docs/DECISIONS.md).
 
 ## SQL primary-path gates (priority)
 
