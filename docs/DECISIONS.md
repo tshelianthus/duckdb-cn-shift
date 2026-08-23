@@ -44,12 +44,12 @@ Engineering standards still align with community norms (cross-platform builds, S
 
 1. **Implement first** the SQL registration path (`INSTALL/LOAD spatial` + `.read sql/cnshift.sql`) so it is usable.
 2. **Separately later** implement the C++ extension path as a fallback / performance / geometry hard-path offering.
-3. `ext/` **currently holds only** `README.md` (planned; see this document). Add the submodule / move the scaffold only when work actually starts. **Do not** run `git submodule add` now.
+3. `ext/` currently holds the C++ fallback (`ext/src/`) plus this document’s install notes. Submodules (`duckdb`, `extension-ci-tools`) are added **because this track is in progress**. Root `CMakeLists.txt` / `Makefile` stay at the repo root (required by `extension-ci-tools`); root `src/` is a pointer, not a second copy. **Do not** open PRs against `duckdb/community-extensions`.
 
 ### Consequences
 
 - Product primary-path docs follow the SQL bootstrap.
-- The existing root-level C++ `extension-template` scaffold may remain for now, but must not block SQL delivery; the formal extension workspace is `ext/`.
+- Formal extension sources live in `ext/src/`; root `src/` must not carry a second copy of the algorithm.
 
 ---
 
@@ -124,13 +124,34 @@ Geometry paths transform XY only; **no guarantee** of topology preservation, sea
 
 ---
 
+## ADR-009 — GitHub Releases host unsigned prebuilt extension binaries
+
+### Decision
+
+Users who want a loadable `cnshift.duckdb_extension` without running `make` download **GitHub Release** assets from this repository, attached when an `ext-v*` tag is pushed **on a commit that is already on `main`**.
+
+- Channel: this repo’s Releases (not `duckdb/community-extensions`, not DuckDB org S3, not `INSTALL … FROM community`).
+- Binaries stay **unsigned**; callers use `allow_unsigned_extensions` / `duckdb -unsigned` and `LOAD` a local path.
+- Asset names: `cnshift-<ext-tag>-duckdb-<duckdb-version>-<arch>.duckdb_extension` (Wasm: `.duckdb_extension.wasm`).
+- Building from source (`git submodule update --init --recursive` + `make release`) remains documented for maintainers and users whose DuckDB version or platform is not in the Release.
+- Integration work stays on `dev`; do not publish prebuilts from `dev` or feature branches. Workflow: merge to `main`, then `git tag ext-v…` on that commit and push the tag.
+
+### Consequences
+
+- Do not tell users to scrape GitHub Actions artifacts (they expire).
+- Do not add `_extension_deploy.yml` / community publish steps.
+- README keeps SQL-first as the zero-build path; prebuilt C++ is optional; `make` is the source-build fallback.
+- A tag whose commit is not on `origin/main` fails the release workflow before the platform matrix (no GitHub Release).
+
+---
+
 ## Related document index
 
 | Document | Role |
 | :--- | :--- |
 | [`ALGORITHM.md`](ALGORITHM.md) | Sole algorithm source of truth |
 | [`bootstrap.md`](bootstrap.md) | SQL bootstrap injection |
-| [`VERSIONING.md`](VERSIONING.md) | Dual-track tags |
-| [`CI.md`](CI.md) | Paths strategy |
+| [`VERSIONING.md`](VERSIONING.md) | Dual-track tags; `ext-v*` → GitHub Release assets |
+| [`CI.md`](CI.md) | Paths strategy + GitHub Release workflow |
 | [`community-extension-release-spec.md`](community-extension-release-spec.md) | **SUPERSEDED** (quality alignment still useful reference) |
 | [`.specs/03_API_CONTRACT.md`](../.specs/03_API_CONTRACT.md) | Public SQL surface |

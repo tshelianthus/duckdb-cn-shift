@@ -1,0 +1,24 @@
+# name: test/sql/00_load.test
+# description: cnshift loads and registers the six public CRS functions
+# group: [sql]
+
+require cnshift
+
+query I
+SELECT count(DISTINCT function_name) = 6
+FROM duckdb_functions()
+WHERE function_name IN (
+	'wgs84_to_gcj02',
+	'gcj02_to_wgs84',
+	'gcj02_to_bd09',
+	'bd09_to_gcj02',
+	'wgs84_to_bd09',
+	'bd09_to_wgs84'
+);
+----
+true
+
+query I
+SELECT wgs84_to_gcj02(31.2304, 121.4737).lat IS NOT NULL;
+----
+true

@@ -29,12 +29,13 @@ C++ track (when `ext/` / `src/` work starts):
 
 ```bash
 git submodule update --init --recursive
-make configure
 make debug && make test_debug
 make release && make test_release
+make format-check
+make tidy-check
 ```
 
-SQL track: inject per bootstrap, then run `testdata/golden/` and related tests. CI paths: `docs/CI.md`.
+These are the same Makefile targets as [`duckdb/extension-template`](https://github.com/duckdb/extension-template) CI (`_extension_distribution.yml` + `_extension_code_quality.yml`). CI wiring: [`docs/CI.md`](CI.md).
 
 ## 3. Functional test requirements (still applicable)
 
@@ -58,4 +59,5 @@ Each public function covers: normal input, boundaries, illegal input, NULL, batc
 - [ ] Corresponding SQL or extension-track tests pass.
 - [ ] README / bootstrap do not advertise community INSTALL.
 - [ ] Correctly prefixed tags applied (`sql-v*` / `ext-v*`).
+- [ ] `ext-v*` GitHub Release has unsigned per-platform `cnshift.duckdb_extension` assets (not Actions artifacts, not community).
 - [ ] **Confirm no** PR opened against `duckdb/community-extensions`.
