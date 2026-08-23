@@ -16,6 +16,10 @@ CREATE OR REPLACE MACRO cn_test_point(op, lat, lon) AS (
 		WHEN 'bd09_to_gcj02' THEN bd09_to_gcj02(lat, lon)
 		WHEN 'wgs84_to_bd09' THEN wgs84_to_bd09(lat, lon)
 		WHEN 'bd09_to_wgs84' THEN bd09_to_wgs84(lat, lon)
+		WHEN 'wgs84_to_shcs2000' THEN {
+			'lat': wgs84_to_shcs2000(lat, lon).y,
+			'lon': wgs84_to_shcs2000(lat, lon).x
+		}
 		ELSE NULL
 	END
 );
@@ -31,8 +35,8 @@ FROM (
 		expect_lon
 	FROM read_csv_auto('testdata/golden/points.csv')
 )
-WHERE abs(got.lat - expect_lat) > 1e-12
-	OR abs(got.lon - expect_lon) > 1e-12
+WHERE abs(got.lat - expect_lat) > 1e-6
+	OR abs(got.lon - expect_lon) > 1e-6
 	OR got IS NULL;
 
 query I

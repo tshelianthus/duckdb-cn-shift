@@ -7,18 +7,17 @@
 **Original status**: Pending review (closed)  
 **Date**: 2026-08-22  
 **Repository**: `duckdb-cn-shift`  
-**Benchmark implementation**: [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform)  
 **Related specs**: `.specs/01_PRD.md`, `.specs/02_ARCHITECTURE.md`, `.specs/03_API_CONTRACT.md`; decisions in `docs/DECISIONS.md`
 
 ---
 
 ## 1. Review purpose
 
-Product has already decided:
+Product decisions:
 
 1. **Do not** join DuckDB Community Extensions (control distribution surface).
-2. **Must** support points / lines / polygons / multi-part; caller UX aligned with pg-coordtransform: `SELECT wgs84_to_gcj02(geom)` — do not require users to dump→transform points→loop→rebuild themselves.
-3. Engineering-wise, **imitate as closely as practical** pg-coordtransform’s function layering and behavior.
+2. **Must** support points / lines / polygons / multi-part; caller UX: `SELECT wgs84_to_gcj02(geom)` — do not require users to dump→transform points→loop→rebuild themselves.
+3. Engineering-wise, optimize SQL macro function layering and behavior.
 
 This report is for expert review: **which technical path should implement equivalent UX on DuckDB**, and **which PG behaviors must be 1:1 replicas versus intentional deviations**.
 
@@ -252,8 +251,6 @@ Same WKT inputs:
 | `geoc_bd09towgs84` | `bd09_to_wgs84` |
 | `geoc_cgcs2000to*` / `*tocgcs2000` | Not implemented; docs: `ST_Transform` → 4326 then call |
 
-## Appendix B — References
+## Appendix: Document status
 
-- https://github.com/geocompass/pg-coordtransform  
-- DuckDB Spatial overview / geometry (v1.5+ built-in GEOMETRY)  
-- This repo’s `.specs/01_PRD.md`, `02_ARCHITECTURE.md`, `03_API_CONTRACT.md`
+- Authoritative: `docs/DECISIONS.md`, `docs/ALGORITHM.md`, `.specs/03_API_CONTRACT.md`

@@ -46,6 +46,25 @@ CnshiftCoord Delta(double lon, double lat) {
 	return {dlat, dlon};
 }
 
+// docs/ALGORITHM.md §7 — Shanghai 2000 (SHCS2000) Geodetic Constants
+constexpr double kShAEff = 6378153.3398;
+constexpr double kShE2 = 0.006694380022900787;
+constexpr double kShEp2 = 0.006739496775498909;
+constexpr double kShL0 = 121.46444444444444;
+constexpr double kShL0Rad = 121.46444444444444 * kPi / 180.0;
+constexpr double kShXOrig = 3457087.73141366;
+constexpr double kShYOrig = 257.85859273;
+
+constexpr double kShK0 = 6367465.458133294;
+constexpr double kShK2 = 16038.549782158;
+constexpr double kShK4 = 16.832642939;
+constexpr double kShK6 = 0.021981053;
+constexpr double kShM0Bar = 6367465.45832782;
+constexpr double kShC1 = 0.002518826597;
+constexpr double kShC2 = 0.000003700949;
+constexpr double kShC3 = 0.000000007448;
+constexpr double kShC4 = 0.000000000017;
+
 } // namespace
 
 bool InChinaBbox(double lat, double lon) {
@@ -98,6 +117,69 @@ CnshiftCoord Wgs84ToBd09(double lat, double lon) {
 CnshiftCoord Bd09ToWgs84(double lat, double lon) {
 	const auto gcj = Bd09ToGcj02(lat, lon);
 	return Gcj02ToWgs84(gcj.lat, gcj.lon);
+}
+
+CnshiftCoord Wgs84ToShcs2000(double lat, double lon) {
+	const double b = lat * kPi / 180.0;
+	const double l = (lon * kPi / 180.0) - kShL0Rad;
+	const double sin_b = std::sin(b);
+	const double cos_b = std::cos(b);
+	const double t = std::tan(b);
+	const double n = kShAEff / std::sqrt(1.0 - kShE2 * sin_b * sin_b);
+	const double eta2 = kShEp2 * cos_b * cos_b;
+	const double x_arc =
+	    kShK0 * b - kShK2 * std::sin(2.0 * b) + kShK4 * std::sin(4.0 * b) - kShK6 * std::sin(6.0 * b);
+	const double x_std = x_arc + n * sin_b * cos_b * (l * l) / 2.0 +
+	                     n * sin_b * (cos_b * cos_b * cos_b) * (5.0 - t * t + 9.0 * eta2 + 4.0 * eta2 * eta2) *
+	                         (l * l * l * l) / 24.0;
+	const double y_std = n * cos_b * l + n * (cos_b * cos_b * cos_b) * (1.0 - t * t + eta2) * (l * l * l) / 6.0;
+	return {x_std - kShXOrig, y_std - kShYOrig};
+}
+
+CnshiftCoord Shcs2000ToWgs84(double y, double x) {
+	const double x_std = y + kShXOrig;
+	const double y_std = x + kShYOrig;
+	const double mu = x_std / kShM0Bar;
+	const double bf = mu + kShC1 * std::sin(2.0 * mu) + kShC2 * std::sin(4.0 * mu) + kShC3 * std::sin(6.0 * mu) +
+	                  kShC4 * std::sin(8.0 * mu);
+	const double sin_bf = std::sin(bf);
+	const double cos_bf = std::cos(bf);
+	const double t_f = std::tan(bf);
+	const double eta_f2 = kShEp2 * cos_bf * cos_bf;
+	const double nf = kShAEff / std::sqrt(1.0 - kShE2 * sin_bf * sin_bf);
+	const double mf = kShAEff * (1.0 - kShE2) / std::pow(1.0 - kShE2 * sin_bf * sin_bf, 1.5);
+	const double lat =
+	    (bf - (t_f / (2.0 * mf * nf)) * (y_std * y_std) +
+	     (t_f / (24.0 * mf * nf * nf * nf)) * (5.0 + 3.0 * t_f * t_f + eta_f2 - 9.0 * eta_f2 * t_f * t_f) *
+	         (y_std * y_std * y_std * y_std)) *
+	    180.0 / kPi;
+	const double l =
+	    ((1.0 / (nf * cos_bf)) * y_std -
+	     ((1.0 + 2.0 * t_f * t_f + eta_f2) / (6.0 * nf * nf * nf * cos_bf)) * (y_std * y_std * y_std) +
+	     ((5.0 + 28.0 * t_f * t_f + 24.0 * t_f * t_f * t_f * t_f) / (120.0 * std::pow(nf, 5.0) * cos_bf)) *
+	         (y_std * y_std * y_std * y_std * y_std)) *
+	    180.0 / kPi;
+	return {lat, kShL0 + l};
+}
+
+CnshiftCoord Gcj02ToShcs2000(double lat, double lon) {
+	const auto wgs = Gcj02ToWgs84(lat, lon);
+	return Wgs84ToShcs2000(wgs.lat, wgs.lon);
+}
+
+CnshiftCoord Shcs2000ToGcj02(double y, double x) {
+	const auto wgs = Shcs2000ToWgs84(y, x);
+	return Wgs84ToGcj02(wgs.lat, wgs.lon);
+}
+
+CnshiftCoord Bd09ToShcs2000(double lat, double lon) {
+	const auto wgs = Bd09ToWgs84(lat, lon);
+	return Wgs84ToShcs2000(wgs.lat, wgs.lon);
+}
+
+CnshiftCoord Shcs2000ToBd09(double y, double x) {
+	const auto wgs = Shcs2000ToWgs84(y, x);
+	return Wgs84ToBd09(wgs.lat, wgs.lon);
 }
 
 } // namespace duckdb

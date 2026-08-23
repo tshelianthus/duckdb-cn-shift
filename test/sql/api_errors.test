@@ -35,3 +35,13 @@ statement error
 SELECT wgs84_to_gcj02('nan'::DOUBLE, 0);
 ----
 Latitude out of range
+
+statement error
+SELECT wgs84_to_shcs2000(91, 0);
+----
+Latitude out of range
+
+statement error
+SELECT shcs2000_to_wgs84('inf'::DOUBLE, 0);
+----
+X coordinate out of range

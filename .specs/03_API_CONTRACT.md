@@ -1,6 +1,6 @@
 # API Contract Specification (v0.2.0 — SQL-first / dual-track)
 
-The public SQL surface targets **`geocompass/pg-coordtransform` as the UX benchmark**: convert a point or `GEOMETRY` with one function; vertex traversal stays inside the implementation.
+The public SQL surface provides unified coordinate conversions for scalar points and `GEOMETRY` objects with single-function convenience; vertex traversal stays inside the implementation.
 
 - **Primary deliverable**: startup-injected SQL (`CREATE MACRO`); see Bootstrap.
 - **Fallback**: a C++ extension exposes the same surface; algorithms must point back to [`docs/ALGORITHM.md`](../docs/ALGORITHM.md).
@@ -53,21 +53,28 @@ GEOMETRY → GEOMETRY
 | WGS-84 | GPS / international geographic coordinates |
 | GCJ-02 | Mars coordinates |
 | BD-09 | Baidu coordinates (further offset on top of GCJ) |
+| SHCS2000 | Shanghai Coordinate System 2000 (Gauss–Krüger projected planar, meters) |
 
-Industry-common open-source empirical formulas; constants in `ALGORITHM.md`.
+Formulae and projection constants are documented in `ALGORITHM.md`.
 
 ---
 
 ## Public functions
 
-| Name | Point form | Geometry form | pg-coordtransform mapping |
+| Name | Point form | Geometry form | Description |
 | :--- | :--- | :--- | :--- |
-| `wgs84_to_gcj02` | `(lat, lon) → STRUCT` | `(geom) → GEOMETRY` | `geoc_wgs84togcj02` |
-| `gcj02_to_wgs84` | same | same | `geoc_gcj02towgs84` |
-| `gcj02_to_bd09` | same | same | `geoc_gcj02tobd09` |
-| `bd09_to_gcj02` | same | same | `geoc_bd09togcj02` |
-| `wgs84_to_bd09` | same | same | `geoc_wgs84tobd09` |
-| `bd09_to_wgs84` | same | same | `geoc_bd09towgs84` |
+| `wgs84_to_gcj02` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | WGS84 to GCJ-02 |
+| `gcj02_to_wgs84` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | GCJ-02 to WGS84 |
+| `gcj02_to_bd09` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | GCJ-02 to BD-09 |
+| `bd09_to_gcj02` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | BD-09 to GCJ-02 |
+| `wgs84_to_bd09` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | WGS84 to BD-09 |
+| `bd09_to_wgs84` | `(lat, lon) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | BD-09 to WGS84 |
+| `wgs84_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | WGS84 to SHCS2000 (m) |
+| `shcs2000_to_wgs84` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (m) to WGS84 |
+| `gcj02_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | GCJ-02 to SHCS2000 (m) |
+| `shcs2000_to_gcj02` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (m) to GCJ-02 |
+| `bd09_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | BD-09 to SHCS2000 (m) |
+| `shcs2000_to_bd09` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (m) to BD-09 |
 
 If the engine cannot overload the same name: allow a `*_geom` suffix, but README examples should lead with geometry usage.
 

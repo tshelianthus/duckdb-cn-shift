@@ -105,22 +105,22 @@ Details: [`docs/CI.md`](CI.md) and comments in `.github/workflows/MainDistributi
 
 ---
 
-## ADR-008 — Behavioral fidelity and intentional deviations
+## ADR-008 — Behavioral specifications and geometry handling decisions
 
-Aligned with [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) and post-expert-review decisions:
+Design decisions for geometry transforms:
 
-| Topic | Decision | vs PG |
+| Topic | Decision | Note |
 | :--- | :--- | :--- |
-| Multi* rebuild | `ST_Collect` / `ST_Multi`; **do not** use `ST_Union` | **Intentional deviation** (avoid merging adjacent parts) |
-| GeometryCollection | Support flat dump→transform→collect; nested Collections may be limited depth, or deferred to C++ | **Intentional improvement** (PG uses ELSE→NULL) |
-| Polygon with holes | Rely on Spatial: `ST_MakePolygon(shell, holes[])` + `ST_Boundary` / `ST_Dump` / `ST_ExteriorRing`, etc. | **Follow capability, not API names**; reject the outdated claim that “SQL cannot handle holes” |
-| BD segment + China bbox | BD point functions also apply bbox (matches pg source) | **Follow PG** |
-| GCJ→WGS | One-shot `2p - forward(p)`, not iterative | **Follow PG** |
-| CGCS2000 | **Do not** implement same-named APIs; document `ST_Transform` to 4326 first | **Reduced surface** (PG has wrapper functions) |
-| Public function names | `wgs84_to_gcj02`, etc.; docs include `geoc_*` mapping | **Naming deviation** (UX alignment) |
-| Numeric constants / delta | See `ALGORITHM.md` (aligned with pg `geoc_delta`) | **Follow PG** |
+| Multi* rebuild | `ST_Collect` / `ST_Multi`; **do not** use `ST_Union` | Avoid merging adjacent parts |
+| GeometryCollection | Support flat dump→transform→collect; nested Collections handled via leaf extraction | Preserve heterogeneous collections |
+| Polygon with holes | Rely on Spatial: `ST_MakePolygon(shell, holes[])` + `ST_Boundary` / `ST_Dump` / `ST_ExteriorRing`, etc. | Robust interior ring handling |
+| BD segment + China bbox | BD point functions apply bbox checks | Identity transform outside bounding box |
+| GCJ→WGS | One-shot `2p - forward(p)` | Fast non-iterative inversion |
+| CGCS2000 | **Do not** implement redundant wrapper APIs; document `ST_Transform` to 4326 first | Clean, minimal surface |
+| Public function names | `wgs84_to_gcj02`, `wgs84_to_shcs2000`, etc. | Concise and ergonomic |
+| Numeric constants / delta | See `ALGORITHM.md` | Single source of truth |
 
-Geometry paths transform XY only; **no guarantee** of topology preservation, seamlessness, or no self-intersections (same class of limits as PG).
+Geometry paths transform XY only; **no guarantee** of topology preservation, seamlessness, or absence of self-intersections.
 
 ---
 

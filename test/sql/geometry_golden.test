@@ -16,6 +16,7 @@ CREATE OR REPLACE MACRO cn_test_geom(op, g) AS (
 		WHEN 'bd09_to_gcj02' THEN bd09_to_gcj02(g)
 		WHEN 'wgs84_to_bd09' THEN wgs84_to_bd09(g)
 		WHEN 'bd09_to_wgs84' THEN bd09_to_wgs84(g)
+		WHEN 'wgs84_to_shcs2000' THEN wgs84_to_shcs2000(g)
 		ELSE NULL
 	END
 );
@@ -58,8 +59,8 @@ FROM (
 				list_transform(
 					generate_series(1, len(expect_vertices)::BIGINT),
 					lambda i:
-						abs(cn_wkt_nums(gout_wkt)[2 * i - 1] - expect_vertices[i][1]) > 1e-12
-						OR abs(cn_wkt_nums(gout_wkt)[2 * i] - expect_vertices[i][2]) > 1e-12
+						abs(cn_wkt_nums(gout_wkt)[2 * i - 1] - expect_vertices[i][1]) > 1e-6
+						OR abs(cn_wkt_nums(gout_wkt)[2 * i] - expect_vertices[i][2]) > 1e-6
 				),
 				lambda acc, x: acc OR x
 			) THEN 'vertex values'

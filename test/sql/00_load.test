@@ -5,7 +5,7 @@
 require cnshift
 
 query I
-SELECT count(DISTINCT function_name) = 6
+SELECT count(DISTINCT function_name) = 18
 FROM duckdb_functions()
 WHERE function_name IN (
 	'wgs84_to_gcj02',
@@ -13,7 +13,19 @@ WHERE function_name IN (
 	'gcj02_to_bd09',
 	'bd09_to_gcj02',
 	'wgs84_to_bd09',
-	'bd09_to_wgs84'
+	'bd09_to_wgs84',
+	'wgs84_to_shcs2000',
+	'shcs2000_to_wgs84',
+	'gcj02_to_shcs2000',
+	'shcs2000_to_gcj02',
+	'bd09_to_shcs2000',
+	'shcs2000_to_bd09',
+	'wgs84_to_shanghai2000',
+	'shanghai2000_to_wgs84',
+	'gcj02_to_shanghai2000',
+	'shanghai2000_to_gcj02',
+	'bd09_to_shanghai2000',
+	'shanghai2000_to_bd09'
 );
 ----
 true
