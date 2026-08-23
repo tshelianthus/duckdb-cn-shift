@@ -7,7 +7,7 @@ China CRS offset transforms (WGS-84 ↔ GCJ-02 ↔ BD-09) for DuckDB.
 UX and delivery model follow the PostgreSQL/PostGIS “paste SQL functions into the DB” pattern: one function for points / lines / polygons; callers do not dump vertices. Formula and product reference: [geocompass/pg-coordtransform](https://github.com/geocompass/pg-coordtransform) (see Acknowledgments).
 
 - **Primary delivery**: `sql/cnshift.sql` (SQL macros + official `spatial`)
-- **Optional**: C++ extension (`ext/`, [private binary](ext/README.md))
+- **Optional**: C++ extension (`ext/`) — [download a prebuilt binary](#c-extension-optional-fallback) or [build from source](ext/README.md#build-from-source)
 - **Not published** to [`duckdb/community-extensions`](https://github.com/duckdb/community-extensions) (legal/compliance). Engineering quality still tracks community norms. See [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGORITHM.md) (numeric behavior aligned with the reference above).
@@ -273,7 +273,47 @@ Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckd
 
 ## C++ extension (optional fallback)
 
-Private, unsigned `cnshift.duckdb_extension`. Same six SQL names as the macros; **not** listed on community-extensions. Build / `LOAD` / `allow_unsigned_extensions`: [ext/README.md](ext/README.md). Root `src/` is a pointer, not a second implementation.
+Private, unsigned `cnshift.duckdb_extension`. Same six SQL names as the macros; **not** listed on community-extensions. There is no `INSTALL cnshift FROM community`.
+
+**Most users should stay on [`sql/cnshift.sql`](#how-to-use-no-make)** (no extension binary). Use this track only if you want a loadable `.duckdb_extension`.
+
+### Download a prebuilt (no `make`)
+
+1. Use DuckDB **v1.5.5** (`SELECT version();`) and note `PRAGMA platform;` (for example `osx_arm64`).
+2. Open the latest [`ext-v*` GitHub Release](https://github.com/tshelianthus/duckdb-cn-shift/releases) and download  
+   `cnshift-<tag>-duckdb-v1.5.5-<platform>.duckdb_extension`.
+3. Allow unsigned extensions and `LOAD` the file:
+
+```bash
+duckdb -unsigned
+```
+
+```sql
+LOAD '/abs/path/cnshift-ext-v0.1.0-duckdb-v1.5.5-osx_arm64.duckdb_extension';
+SELECT wgs84_to_gcj02(31.2304, 121.4737);
+```
+
+Python:
+
+```python
+import duckdb
+con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
+con.execute("LOAD '/abs/path/cnshift.duckdb_extension'")
+```
+
+Platform table, Wasm assets, and checksums: [ext/README.md](ext/README.md). Do not download GitHub Actions artifacts (they expire).
+
+### Build from source
+
+Needs git submodules (DuckDB + `extension-ci-tools`). Use this when no Release asset matches your DuckDB version or platform, or when developing the C++ track.
+
+```bash
+git submodule update --init --recursive
+make release
+make test_release
+```
+
+Then `LOAD` `build/release/extension/cnshift/cnshift.duckdb_extension` with the unsigned flag above. Format/tidy gates and layout: [ext/README.md](ext/README.md). Root `src/` is a pointer, not a second implementation.
 
 ## Docs index
 
@@ -282,7 +322,7 @@ Private, unsigned `cnshift.duckdb_extension`. Same six SQL names as the macros; 
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs: dual-track, no community submit, intentional divergences |
 | [docs/ALGORITHM.md](docs/ALGORITHM.md) | Formulae and constants |
 | [docs/bootstrap.md](docs/bootstrap.md) | Bootstrap / injection |
-| [docs/CI.md](docs/CI.md) | Path filters |
+| [docs/CI.md](docs/CI.md) | Path filters; `ext-v*` GitHub Release |
 | [docs/metabase.md](docs/metabase.md) | Self-hosted Metabase + community DuckDB driver (optional) |
 | [testdata/golden/](testdata/golden/) | Shared golden fixtures |
 

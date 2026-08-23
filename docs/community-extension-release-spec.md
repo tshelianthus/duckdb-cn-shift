@@ -59,4 +59,5 @@ Each public function covers: normal input, boundaries, illegal input, NULL, batc
 - [ ] Corresponding SQL or extension-track tests pass.
 - [ ] README / bootstrap do not advertise community INSTALL.
 - [ ] Correctly prefixed tags applied (`sql-v*` / `ext-v*`).
+- [ ] `ext-v*` GitHub Release has unsigned per-platform `cnshift.duckdb_extension` assets (not Actions artifacts, not community).
 - [ ] **Confirm no** PR opened against `duckdb/community-extensions`.
