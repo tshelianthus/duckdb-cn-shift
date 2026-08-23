@@ -592,31 +592,3 @@ CREATE OR REPLACE MACRO bd09_to_shcs2000
 CREATE OR REPLACE MACRO shcs2000_to_bd09
 	(x, y) AS wgs84_to_bd09(shcs2000_to_wgs84(x, y).lat, shcs2000_to_wgs84(x, y).lon),
 	(geom) AS wgs84_to_bd09(shcs2000_to_wgs84(geom));
-
--- Backward-compatibility / Descriptive Aliases (*_shanghai2000)
-CREATE OR REPLACE MACRO wgs84_to_shanghai2000
-	(lat, lon) AS wgs84_to_shcs2000(lat, lon),
-	(geom) AS wgs84_to_shcs2000(geom);
-
-CREATE OR REPLACE MACRO shanghai2000_to_wgs84
-	(x, y) AS shcs2000_to_wgs84(x, y),
-	(geom) AS shcs2000_to_wgs84(geom);
-
-CREATE OR REPLACE MACRO gcj02_to_shanghai2000
-	(lat, lon) AS gcj02_to_shcs2000(lat, lon),
-	(geom) AS gcj02_to_shcs2000(geom);
-
-CREATE OR REPLACE MACRO shanghai2000_to_gcj02
-	(x, y) AS shcs2000_to_gcj02(x, y),
-	(geom) AS shcs2000_to_gcj02(geom);
-
-CREATE OR REPLACE MACRO bd09_to_shanghai2000
-	(lat, lon) AS bd09_to_shcs2000(lat, lon),
-	(geom) AS bd09_to_shcs2000(geom);
-
-CREATE OR REPLACE MACRO shanghai2000_to_bd09
-	(x, y) AS shcs2000_to_bd09(x, y),
-	(geom) AS shcs2000_to_bd09(geom);
-
-
-

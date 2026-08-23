@@ -234,20 +234,17 @@ SELECT CASE
 END AS point_geom_overload
 FROM point_both;
 
--- SHCS2000 Point & Geometry overloads match (including alias check)
+-- SHCS2000 Point & Geometry overloads match
 CREATE TABLE sh_point_both AS
 SELECT
 	wgs84_to_shcs2000(31.2304, 121.4737) AS pt,
-	wgs84_to_shcs2000(ST_Point(121.4737, 31.2304)) AS geom,
-	wgs84_to_shanghai2000(31.2304, 121.4737) AS pt_alias;
+	wgs84_to_shcs2000(ST_Point(121.4737, 31.2304)) AS geom;
 
 SELECT CASE
 	WHEN abs(ST_X(geom) - pt.x) < 1e-9
 		AND abs(ST_Y(geom) - pt.y) < 1e-9
-		AND abs(pt_alias.x - pt.x) < 1e-9
-		AND abs(pt_alias.y - pt.y) < 1e-9
-		THEN 'PASS shcs2000 point geom overload & alias'
-	ELSE error('shcs2000 geometry POINT or alias disagrees with (lat, lon) overload')
+		THEN 'PASS shcs2000 point geom overload'
+	ELSE error('shcs2000 geometry POINT disagrees with (lat, lon) overload')
 END AS sh_point_geom_overload
 FROM sh_point_both;
 

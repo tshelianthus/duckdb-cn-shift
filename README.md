@@ -280,8 +280,6 @@ No CGCS2000-named APIs: `ST_Transform` to EPSG:4326 first. Bootstrap notes: [doc
 | `bd09_to_shcs2000` | `(lat, lon) → STRUCT(x, y)` | `(geom) → GEOMETRY` | BD-09 to SHCS2000 (meters) |
 | `shcs2000_to_bd09` | `(x, y) → STRUCT(lat, lon)` | `(geom) → GEOMETRY` | SHCS2000 (meters) to BD-09 |
 
-*Note: `*_shanghai2000` aliases are provided for all SHCS2000 functions.*
-
 Invalid or non-finite coordinates return `NULL` in the SQL macro track, and raise `OutOfRangeException` in the C++ extension. Outside the China bounding box, coordinates pass through unchanged (for geographic transforms). Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
 
 Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckdb` CLI).

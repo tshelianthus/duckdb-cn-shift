@@ -293,20 +293,6 @@ static void LoadInternal(ExtensionLoader &loader) {
 	                            CnshiftGeomFun<Bd09ToShcs2000>);
 	RegisterFromShanghaiOverloads(loader, "shcs2000_to_bd09", CnshiftFromShanghaiPointFun<Shcs2000ToBd09>,
 	                              CnshiftGeomFun<Shcs2000ToBd09>);
-
-	// Backward-compatibility / Descriptive Aliases (*_shanghai2000)
-	RegisterToShanghaiOverloads(loader, "wgs84_to_shanghai2000", CnshiftToShanghaiPointFun<Wgs84ToShcs2000>,
-	                            CnshiftGeomFun<Wgs84ToShcs2000>);
-	RegisterFromShanghaiOverloads(loader, "shanghai2000_to_wgs84", CnshiftFromShanghaiPointFun<Shcs2000ToWgs84>,
-	                              CnshiftGeomFun<Shcs2000ToWgs84>);
-	RegisterToShanghaiOverloads(loader, "gcj02_to_shanghai2000", CnshiftToShanghaiPointFun<Gcj02ToShcs2000>,
-	                            CnshiftGeomFun<Gcj02ToShcs2000>);
-	RegisterFromShanghaiOverloads(loader, "shanghai2000_to_gcj02", CnshiftFromShanghaiPointFun<Shcs2000ToGcj02>,
-	                              CnshiftGeomFun<Shcs2000ToGcj02>);
-	RegisterToShanghaiOverloads(loader, "bd09_to_shanghai2000", CnshiftToShanghaiPointFun<Bd09ToShcs2000>,
-	                            CnshiftGeomFun<Bd09ToShcs2000>);
-	RegisterFromShanghaiOverloads(loader, "shanghai2000_to_bd09", CnshiftFromShanghaiPointFun<Shcs2000ToBd09>,
-	                              CnshiftGeomFun<Shcs2000ToBd09>);
 }
 
 void CnshiftExtension::Load(ExtensionLoader &loader) {
