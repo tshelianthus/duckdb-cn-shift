@@ -1,0 +1,98 @@
+#
+# Auto-tag and initiate release on merge to main branch.
+#
+# Trigger: Push / Merge to `main` branch.
+# Logic: Reads `VERSION` file. If the tag `sql-v$VERSION` does not exist on origin:
+#   1. Tags `sql-v$VERSION` and `ext-v$VERSION` and pushes them to origin.
+#   2. Publishes the SQL Track GitHub Release.
+#   3. The push of `ext-v$VERSION` triggers ext-github-release.yml (or dispatches it)
+#      to build multi-arch binaries and publish the C++ Extension Release.
+# If the version tag already exists, skips quietly.
+#
+name: Auto Release on Main
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "VERSION"
+
+concurrency:
+  group: auto-release-main-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  check-and-release:
+    name: Check version and trigger releases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Process release if version bumped
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -f VERSION ]; then
+            echo "No VERSION file found at repository root. Skipping auto-release."
+            exit 0
+          fi
+
+          ver="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+            echo "Invalid version '$ver' in VERSION file. Skipping auto-release."
+            exit 0
+          fi
+
+          ext_tag="ext-v$ver"
+          sql_tag="sql-v$ver"
+
+          # Check if tag already exists in remote
+          if git ls-remote --tags origin "refs/tags/$sql_tag" | grep -q "$sql_tag"; then
+            echo "Tag $sql_tag already exists on origin. Skipping auto-release."
+            exit 0
+          fi
+
+          echo "New version $ver detected on main. Creating tags $sql_tag and $ext_tag..."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create and push git tags
+          git tag -a "$sql_tag" -m "Release $sql_tag"
+          git tag -a "$ext_tag" -m "Release $ext_tag"
+          git push origin "$sql_tag" "$ext_tag"
+
+          # Publish SQL track release
+          cat << 'NOTES' > /tmp/sql_release_notes.md
+## duckdb-cn-shift SQL Macros Release
+
+Primary deliverable: [`sql/cnshift.sql`](https://github.com/tshelianthus/duckdb-cn-shift/blob/main/sql/cnshift.sql)
+
+Provides zero-dependency (pure SQL macro) China coordinate transformations for DuckDB using the official `spatial` extension.
+
+### Quick Start (SQL)
+
+```sql
+INSTALL spatial;
+LOAD spatial;
+.read 'sql/cnshift.sql'
+
+SELECT wgs84_to_gcj02(31.2304, 121.4737);
+SELECT wgs84_to_gcj02(geom) FROM parcels;
+```
+NOTES
+          gh release create "$sql_tag" \
+            --title "$sql_tag: SQL Macros Release" \
+            --notes-file /tmp/sql_release_notes.md || true
+          rm -f /tmp/sql_release_notes.md
+
+          # Trigger extension release workflow for the new tag
+          gh workflow run ext-github-release.yml --ref "$ext_tag" || true
