@@ -27,6 +27,8 @@ Do **not** open PRs against [`duckdb/community-extensions`](https://github.com/d
 git submodule update --init --recursive
 make debug          # or: make release
 make test_debug     # or: make test_release
+make format-check   # clang-format 11; same as community template
+make tidy-check     # clang-tidy; same as community template
 ```
 
 Artifact (after release): `build/release/extension/cnshift/cnshift.duckdb_extension`.

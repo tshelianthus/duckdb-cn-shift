@@ -1,6 +1,6 @@
 # name: test/sql/points_golden.test
 # description: Point overloads vs shared testdata/golden/points.csv
-# group: [cnshift]
+# group: [sql]
 
 require cnshift
 

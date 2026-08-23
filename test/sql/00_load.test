@@ -1,6 +1,6 @@
 # name: test/sql/00_load.test
 # description: cnshift loads and registers the six public CRS functions
-# group: [cnshift]
+# group: [sql]
 
 require cnshift
 

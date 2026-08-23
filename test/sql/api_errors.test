@@ -1,6 +1,6 @@
 # name: test/sql/api_errors.test
 # description: Point overload range / non-finite inputs throw (C++ prefers errors)
-# group: [cnshift]
+# group: [sql]
 
 require cnshift
 

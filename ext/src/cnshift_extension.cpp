@@ -87,12 +87,12 @@ static void ExecuteCrsTransform(DataChunk &args, Vector &result, CnshiftTransfor
 }
 
 template <CnshiftTransformFn FN>
-static void CnshiftPointFun(DataChunk &args, ExpressionState &state, Vector &result) {
+static void CnshiftPointFun(DataChunk &args, ExpressionState &, Vector &result) {
 	ExecuteCrsTransform(args, result, FN);
 }
 
 template <CnshiftTransformFn FN>
-static void CnshiftGeomFun(DataChunk &args, ExpressionState &state, Vector &result) {
+static void CnshiftGeomFun(DataChunk &args, ExpressionState &, Vector &result) {
 	UnaryExecutor::Execute<string_t, string_t>(args.data[0], result, args.size(), [&](const string_t &wkb) {
 		const auto out = TransformGeometryWkb(wkb, FN);
 		return StringVector::AddStringOrBlob(result, out);

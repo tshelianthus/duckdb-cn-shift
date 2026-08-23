@@ -43,4 +43,5 @@ LOAD spatial;
 
 - `git submodule update --init --recursive`
 - `make debug` / `make test_debug`
+- `make format-check` / `make tidy-check` (same as `duckdb/extension-template`)
 - Private `LOAD`: see `ext/README.md` (`allow_unsigned_extensions`; never `FROM community`)

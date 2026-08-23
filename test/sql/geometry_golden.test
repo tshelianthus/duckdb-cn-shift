@@ -1,6 +1,6 @@
 # name: test/sql/geometry_golden.test
 # description: GEOMETRY overloads vs shared testdata/golden/geometries.jsonl
-# group: [cnshift]
+# group: [sql]
 
 # Core GEOMETRY (WKT cast) + in-tree json for the shared JSONL goldens.
 require json
