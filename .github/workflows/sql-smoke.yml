@@ -37,10 +37,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install DuckDB CLI
         run: |
-          curl -fsSL -o duckdb.zip \
+          mkdir -p /tmp/duckdb_install
+          curl -fsSL -o /tmp/duckdb_install/duckdb.zip \
             https://install.duckdb.org/v1.5.5/duckdb_cli-linux-amd64.zip
-          unzip -o duckdb.zip
-          sudo mv duckdb /usr/local/bin/duckdb
+          unzip -o /tmp/duckdb_install/duckdb.zip -d /tmp/duckdb_install
+          sudo mv /tmp/duckdb_install/duckdb /usr/local/bin/duckdb
+          rm -rf /tmp/duckdb_install
           duckdb --version
       - name: Run SQL-track goldens
         run: bash test/sql/run_sql_track.sh
