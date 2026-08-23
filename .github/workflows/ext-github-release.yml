@@ -174,7 +174,6 @@ EOF
     env:
       DUCKDB_VERSION: v1.5.5
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ needs.guard.outputs.ext_tag }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -183,6 +182,8 @@ EOF
           merge-multiple: false
 
       - name: Pack release assets
+        env:
+          TAG: ${{ needs.guard.outputs.ext_tag }}
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -213,6 +214,8 @@ EOF
           ls -la dist
 
       - name: Write release notes
+        env:
+          TAG: ${{ needs.guard.outputs.ext_tag }}
         run: |
           python3 - <<'PY'
           import os
@@ -245,6 +248,8 @@ EOF
           PY
 
       - name: Publish GitHub Release
+        env:
+          TAG: ${{ needs.guard.outputs.ext_tag }}
         run: |
           set -euo pipefail
           tag="${TAG}"
