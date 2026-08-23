@@ -5,7 +5,7 @@
 > [!WARNING]
 > **DISCLAIMER & COMPLIANCE WARNING**: This software provides mathematical approximations based on open-source community empirical models. It is **NOT** an official surveying standard, carries **NO** official certification or legal validity, and is strictly prohibited for commercial surveying, cadastral mapping, or navigation. Users must independently ensure compliance with all applicable surveying and geospatial data regulations. See [DISCLAIMER.md](DISCLAIMER.md).
 
-SQL macros and utility functions for geometric coordinate transformations (WGS-84 ↔ GCJ-02 ↔ BD-09 ↔ SHCS2000) in DuckDB.
+SQL macros and utility functions for geometric coordinate transformations in DuckDB.
 
 Provides unified mathematical transform interfaces for spatial analytics across points, lines, and polygons.
 
