@@ -51,10 +51,6 @@ public:
 	WkbReader(const char *data_p, idx_t size_p) : data(data_p), size(size_p), pos(0) {
 	}
 
-	idx_t Remaining() const {
-		return pos <= size ? size - pos : 0;
-	}
-
 	bool AtEnd() const {
 		return pos >= size;
 	}
