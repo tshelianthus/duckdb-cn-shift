@@ -14,7 +14,7 @@ Single source of truth for constants and formulae: [docs/ALGORITHM.md](docs/ALGO
 
 ## How to use (no `make`)
 
-Primary artifact is one SQL file: [`sql/cnshift.sql`](sql/cnshift.sql). Install any [official DuckDB client](https://duckdb.org/docs/current/clients/overview.html). Do **not** build this repo, do **not** run `make`, do **not** `INSTALL cnshift FROM community`. There is no language package (`pip` / `install.packages("cnshift")`, etc.).
+Primary artifact is one SQL file: [`sql/cnshift.sql`](sql/cnshift.sql). Install any [official DuckDB client](https://duckdb.org/docs/current/clients/overview.html). No compilation is required (do not run `make` or attempt `INSTALL cnshift FROM community`). There is no separate language package (`pip` / `install.packages("cnshift")`, etc.).
 
 Same steps on every client:
 
@@ -25,7 +25,7 @@ Same steps on every client:
 
 Point overload is **`(lat, lon)`**; geometry `ST_Point` remains **`(lon, lat)`**. `.read` exists **only in the CLI**. In-memory DBs need the script every new process; a persistent `.duckdb` needs injection once (new connections still need `LOAD spatial`).
 
-GitHub READMEs have **no tab UI**. Sections below follow the official Client Overview table order (Primary, then Secondary). Jump links:
+Sections below follow the official Client Overview table order (Primary, then Secondary). Jump links:
 
 **Primary:** [C](#c) · [CLI](#cli) · [Java](#java-jdbc) · [Go](#go) · [Node.js](#nodejs-node-neo) · [ODBC](#odbc) · [Python](#python) · [R](#r) · [Rust](#rust) · [Wasm](#webassembly-wasm)
 
@@ -70,7 +70,11 @@ SELECT wgs84_to_gcj02(ST_Point(121.4737, 31.2304));
 Inject once into a persistent file for other languages to share:
 
 ```bash
-duckdb analysis.duckdb -c "INSTALL spatial; LOAD spatial; .read 'sql/cnshift.sql'"
+duckdb analysis.duckdb <<'EOF'
+INSTALL spatial;
+LOAD spatial;
+.read 'sql/cnshift.sql'
+EOF
 ```
 
 ### Java (JDBC)
@@ -239,7 +243,7 @@ using var reader = cmd.ExecuteReader();
 
 ### C++ client
 
-Secondary. [C++ client](https://duckdb.org/docs/current/clients/cpp.html) (not the planned `ext/` extension in this repo).
+Secondary. [C++ client](https://duckdb.org/docs/current/clients/cpp.html) (distinct from the `ext/` loadable extension in this repo).
 
 ```cpp
 #include "duckdb.hpp"
@@ -267,7 +271,7 @@ No CGCS2000-named APIs: `ST_Transform` to EPSG:4326 first. Bootstrap notes: [doc
 | `wgs84_to_bd09` | same | same |
 | `bd09_to_wgs84` | same | same |
 
-Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
+Invalid or non-finite coordinates return `NULL` in the SQL macro track, and raise `OutOfRangeException` in the C++ extension. Outside the China bounding box, coordinates pass through unchanged. Full semantics: [`.specs/03_API_CONTRACT.md`](.specs/03_API_CONTRACT.md). Version tags: `sql-v*` / `ext-v*` — [docs/VERSIONING.md](docs/VERSIONING.md).
 
 Maintainer regression: `bash test/sql/run_sql_track.sh` (requires a local `duckdb` CLI).
 
