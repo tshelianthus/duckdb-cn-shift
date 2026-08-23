@@ -5,9 +5,9 @@
 > [!WARNING]
 > **DISCLAIMER & COMPLIANCE WARNING**: This software provides mathematical approximations based on open-source community empirical models. It is **NOT** an official surveying standard, carries **NO** official certification or legal validity, and is strictly prohibited for commercial surveying, cadastral mapping, or navigation. Users must independently ensure compliance with all applicable surveying and geospatial data regulations. See [DISCLAIMER.md](DISCLAIMER.md).
 
-China CRS offset & projection transforms (WGS-84 ↔ GCJ-02 ↔ BD-09 ↔ SHCS2000) for DuckDB.
+SQL macros and utility functions for geometric coordinate transformations (WGS-84 ↔ GCJ-02 ↔ BD-09 ↔ SHCS2000) in DuckDB.
 
-Unified function interfaces for points, lines, and polygons without manual vertex iteration.
+Provides unified mathematical transform interfaces for spatial analytics across points, lines, and polygons.
 
 - **Primary delivery**: `sql/cnshift.sql` (SQL macros + official `spatial`)
 - **Optional**: C++ extension (`ext/`) — [download a prebuilt binary](#c-extension-optional-fallback) or [build from source](ext/README.md#build-from-source)
