@@ -142,9 +142,6 @@ EOF
     name: Build extension binaries
     needs: guard
     if: needs.guard.outputs.should_release == 'true'
-    permissions:
-      contents: read
-      actions: write
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
     with:
       duckdb_version: v1.5.5
@@ -156,8 +153,6 @@ EOF
     name: Code Quality Check
     needs: guard
     if: needs.guard.outputs.should_release == 'true'
-    permissions:
-      contents: read
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_code_quality.yml@v1.5-variegata
     with:
       duckdb_version: v1.5.5
