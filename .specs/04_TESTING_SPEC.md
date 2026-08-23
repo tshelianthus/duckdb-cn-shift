@@ -30,7 +30,7 @@ When submodules are available and `ext/**` / `src/**` / build files are touched:
 
 **Out of scope**: `INSTALL cnshift FROM community` (this repo is not listed on community).
 
-Private `LOAD` + unsigned flag: [`ext/README.md`](../ext/README.md).
+Private `LOAD` + unsigned flag + GitHub Release downloads: [`ext/README.md`](../ext/README.md).
 
 ## Phase: point-operator matrix (excerpt)
 

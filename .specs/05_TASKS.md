@@ -42,7 +42,7 @@
 - [x] Populate `ext/` (sources in `ext/src/`; root CMake/Makefile for extension-ci-tools)
 - [x] Consume the same `testdata/golden/`
 - [ ] Tag `ext-v0.1.0` after merge (not tagged this iteration); full CI matrix only on `ext/**`/`src/**`/build-file triggers
-- [x] Private binary distribution docs (`allow_unsigned_extensions`); **still not on community**
+- [x] Private binary distribution: GitHub Release assets on `ext-v*` + `allow_unsigned_extensions` docs; **still not on community**
 
 ## Explicitly cancelled legacy tasks
 

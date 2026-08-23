@@ -8,7 +8,7 @@ You are an expert systems engineer working on `duckdb-cn-shift` (China CRS offse
 - **Fallback path**: C++ extension — `ext/src/` → `cnshift.duckdb_extension` (private / unsigned). Root `src/` is a pointer only.
 - **No community submission**: This repository **does not** submit to `duckdb/community-extensions` (legal/compliance, not a technical reason). See `docs/DECISIONS.md`.
 - **Sole algorithm source of truth**: `docs/ALGORITHM.md`. Implementations may only reference it; do not maintain separate constants.
-- **Version tags**: `sql-v*` / `ext-v*` (`docs/VERSIONING.md`); no bare `v0.1.0`.
+- **Version tags**: `sql-v*` / `ext-v*` (`docs/VERSIONING.md`); no bare `v0.1.0`. Pushing `ext-v*` on a **`main`** commit attaches unsigned binaries to a GitHub Release (not community). Do not tag `dev` for downloads.
 - **Languages**: Primary SQL deliverable is DuckDB SQL; extension track is **C++17**. Do not introduce Cargo/Rust. Do not self-link GEOS/GDAL/PROJ.
 
 ## 1. Core Principles
@@ -44,4 +44,4 @@ LOAD spatial;
 - `git submodule update --init --recursive`
 - `make debug` / `make test_debug`
 - `make format-check` / `make tidy-check` (same as `duckdb/extension-template`)
-- Private `LOAD`: see `ext/README.md` (`allow_unsigned_extensions`; never `FROM community`)
+- Private `LOAD`: see `ext/README.md` (`allow_unsigned_extensions`; never `FROM community`). Users may download GitHub Release assets on `ext-v*` tags instead of `make`.

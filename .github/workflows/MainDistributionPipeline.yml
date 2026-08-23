@@ -4,7 +4,11 @@
 # DECISIONS (see docs/DECISIONS.md, docs/CI.md):
 # - This workflow supports engineering quality aligned with community norms.
 # - It does NOT imply submission to duckdb/community-extensions (forbidden:
-#   legal/compliance). Do not add publish-to-community steps.
+#   legal/compliance). Do not add publish-to-community steps
+#   (_extension_deploy.yml / S3 / INSTALL FROM community).
+# - Prebuilt GitHub Release assets: after merge to main, push an ext-v* tag →
+#   .github/workflows/ext-github-release.yml (refuses tags not on origin/main;
+#   path filters here skip tag-only pushes, so that workflow rebuilds).
 # - Version tags: sql-v* / ext-v* (docs/VERSIONING.md).
 #
 # Paths (ADR-006):

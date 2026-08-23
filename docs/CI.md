@@ -10,6 +10,7 @@ C++ CI **quality bar matches** [`duckdb/extension-template`](https://github.com/
 | :--- | :--- | :--- |
 | **sql-smoke** (light) | `sql/**`, `testdata/golden/**`, `docs/ALGORITHM.md`, `docs/bootstrap.md`, SQL-track tests | `INSTALL/LOAD spatial` → `.read sql/cnshift.sql` → golden / SQLLogic-style asserts |
 | **ext-matrix** (full) | `ext/**`, `src/**`, `test/sql/*.test`, `CMakeLists.txt`, `Makefile`, `extension_config.cmake`, `vcpkg.json`, `.gitmodules`, extension workflows | Community-equivalent C++ gates (below) |
+| **ext GitHub Release** | `ext-v*` tags whose commit is on `main` | Guard → rebuild full matrix → attach unsigned binaries |
 
 Pure docs (e.g. narrative-only edits to `docs/DECISIONS.md`) may skip heavy jobs.
 
@@ -34,11 +35,14 @@ make tidy-check
 
 Style files are the same as the official template: `.clang-format` / `.clang-tidy` / `.editorconfig` symlink to `duckdb/`.
 
-**Not in CI (on purpose):** deploy / `INSTALL FROM community` / community-extensions `description.yml`. Private unsigned `LOAD` is documented in [`ext/README.md`](../ext/README.md).
+**Not in CI (on purpose):** community deploy (`_extension_deploy.yml`), `INSTALL FROM community`, community-extensions `description.yml`.
+
+**GitHub Releases (private unsigned binaries):** pushing an `ext-v*` tag runs [`.github/workflows/ext-github-release.yml`](../.github/workflows/ext-github-release.yml). A first job checks that the tagged commit is already on `origin/main` (tags on `dev` / feature branches fail immediately). Path filters on `MainDistributionPipeline.yml` do not match tag-only pushes, so a passing guard then rebuilds the matrix rather than reusing PR artifacts. Download + `LOAD`: [`ext/README.md`](../ext/README.md).
 
 ## Current repo state
 
 - **sql-smoke**: `.github/workflows/sql-smoke.yml` — runs `LOAD spatial` + goldens when `sql/**`, `testdata/golden/**`, SQL-track tests, or algorithm docs change. C++ `test/sql/*.test` files do **not** trigger this job.
 - **ext-matrix**: `.github/workflows/MainDistributionPipeline.yml` — `ext/**`, `src/**`, `test/sql/*.test`, build files, `.gitmodules`; `sql/**`-only and golden-only changes do not run the C++ matrix (ADR-006).
+- **ext GitHub Release**: `.github/workflows/ext-github-release.yml` — `push` of `ext-v*` tags only, and only if that commit is on `main`; attaches unsigned `cnshift.duckdb_extension` assets. `sql-v*` does not run this job.
 
-See [`DECISIONS.md`](DECISIONS.md) ADR-002 / ADR-006.
+See [`DECISIONS.md`](DECISIONS.md) ADR-002 / ADR-006 / ADR-009.
