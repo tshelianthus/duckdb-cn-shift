@@ -29,4 +29,3 @@ CnshiftCoord Bd09ToShcs2000(double lat, double lon);
 CnshiftCoord Shcs2000ToBd09(double y, double x);
 
 } // namespace duckdb
-

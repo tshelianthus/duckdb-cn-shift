@@ -125,11 +125,10 @@ CnshiftCoord Wgs84ToShcs2000(double lat, double lon) {
 	const double t = std::tan(b);
 	const double n = kShAEff / std::sqrt(1.0 - kShE2 * sin_b * sin_b);
 	const double eta2 = kShEp2 * cos_b * cos_b;
-	const double x_arc =
-	    kShK0 * b - kShK2 * std::sin(2.0 * b) + kShK4 * std::sin(4.0 * b) - kShK6 * std::sin(6.0 * b);
-	const double x_std = x_arc + n * sin_b * cos_b * (l * l) / 2.0 +
-	                     n * sin_b * (cos_b * cos_b * cos_b) * (5.0 - t * t + 9.0 * eta2 + 4.0 * eta2 * eta2) *
-	                         (l * l * l * l) / 24.0;
+	const double x_arc = kShK0 * b - kShK2 * std::sin(2.0 * b) + kShK4 * std::sin(4.0 * b) - kShK6 * std::sin(6.0 * b);
+	const double x_std =
+	    x_arc + n * sin_b * cos_b * (l * l) / 2.0 +
+	    n * sin_b * (cos_b * cos_b * cos_b) * (5.0 - t * t + 9.0 * eta2 + 4.0 * eta2 * eta2) * (l * l * l * l) / 24.0;
 	const double y_std = n * cos_b * l + n * (cos_b * cos_b * cos_b) * (1.0 - t * t + eta2) * (l * l * l) / 6.0;
 	return {x_std - kShXOrig, y_std - kShYOrig};
 }
@@ -151,12 +150,11 @@ CnshiftCoord Shcs2000ToWgs84(double y, double x) {
 	     (t_f / (24.0 * mf * nf * nf * nf)) * (5.0 + 3.0 * t_f * t_f + eta_f2 - 9.0 * eta_f2 * t_f * t_f) *
 	         (y_std * y_std * y_std * y_std)) *
 	    180.0 / kPi;
-	const double l =
-	    ((1.0 / (nf * cos_bf)) * y_std -
-	     ((1.0 + 2.0 * t_f * t_f + eta_f2) / (6.0 * nf * nf * nf * cos_bf)) * (y_std * y_std * y_std) +
-	     ((5.0 + 28.0 * t_f * t_f + 24.0 * t_f * t_f * t_f * t_f) / (120.0 * std::pow(nf, 5.0) * cos_bf)) *
-	         (y_std * y_std * y_std * y_std * y_std)) *
-	    180.0 / kPi;
+	const double l = ((1.0 / (nf * cos_bf)) * y_std -
+	                  ((1.0 + 2.0 * t_f * t_f + eta_f2) / (6.0 * nf * nf * nf * cos_bf)) * (y_std * y_std * y_std) +
+	                  ((5.0 + 28.0 * t_f * t_f + 24.0 * t_f * t_f * t_f * t_f) / (120.0 * std::pow(nf, 5.0) * cos_bf)) *
+	                      (y_std * y_std * y_std * y_std * y_std)) *
+	                 180.0 / kPi;
 	return {lat, kShL0 + l};
 }
 

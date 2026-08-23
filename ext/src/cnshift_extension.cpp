@@ -155,8 +155,7 @@ static void ExecuteFromShanghai2000(DataChunk &args, Vector &result, CnshiftTran
 	auto &y_vec = args.data[1];
 	const idx_t count = args.size();
 
-	if (x_vec.GetVectorType() == VectorType::CONSTANT_VECTOR &&
-	    y_vec.GetVectorType() == VectorType::CONSTANT_VECTOR) {
+	if (x_vec.GetVectorType() == VectorType::CONSTANT_VECTOR && y_vec.GetVectorType() == VectorType::CONSTANT_VECTOR) {
 		if (ConstantVector::IsNull(x_vec) || ConstantVector::IsNull(y_vec)) {
 			result.Reference(Value(result.GetType()));
 			return;
@@ -240,7 +239,7 @@ static void RegisterCrsOverloads(ExtensionLoader &loader, const char *name, scal
 }
 
 static void RegisterToShanghaiOverloads(ExtensionLoader &loader, const char *name, scalar_function_t point_fn,
-                                       scalar_function_t geom_fn) {
+                                        scalar_function_t geom_fn) {
 	ScalarFunctionSet set(name);
 
 	ScalarFunction point_fun({LogicalType::DOUBLE, LogicalType::DOUBLE}, MakeXYStructType(), std::move(point_fn));
@@ -255,7 +254,7 @@ static void RegisterToShanghaiOverloads(ExtensionLoader &loader, const char *nam
 }
 
 static void RegisterFromShanghaiOverloads(ExtensionLoader &loader, const char *name, scalar_function_t point_fn,
-                                         scalar_function_t geom_fn) {
+                                          scalar_function_t geom_fn) {
 	ScalarFunctionSet set(name);
 
 	ScalarFunction point_fun({LogicalType::DOUBLE, LogicalType::DOUBLE}, MakeLatLonStructType(), std::move(point_fn));
