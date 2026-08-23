@@ -103,11 +103,11 @@ static void RegisterCrsOverloads(ExtensionLoader &loader, const char *name, scal
                                  scalar_function_t geom_fn) {
 	ScalarFunctionSet set(name);
 
-	ScalarFunction point_fun({LogicalType::DOUBLE, LogicalType::DOUBLE}, MakeLatLonStructType(), point_fn);
+	ScalarFunction point_fun({LogicalType::DOUBLE, LogicalType::DOUBLE}, MakeLatLonStructType(), std::move(point_fn));
 	point_fun.SetFallible();
 	set.AddFunction(std::move(point_fun));
 
-	ScalarFunction geom_fun({LogicalType::GEOMETRY()}, LogicalType::GEOMETRY(), geom_fn);
+	ScalarFunction geom_fun({LogicalType::GEOMETRY()}, LogicalType::GEOMETRY(), std::move(geom_fn));
 	geom_fun.SetFallible();
 	set.AddFunction(std::move(geom_fun));
 
