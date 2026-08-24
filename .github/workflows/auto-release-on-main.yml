@@ -37,6 +37,7 @@ jobs:
       - name: Process release if version bumped
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -71,24 +72,29 @@ jobs:
           git push origin "$sql_tag" "$ext_tag"
 
           # Publish SQL track release
-          cat << 'NOTES' > /tmp/sql_release_notes.md
-## duckdb-cn-shift SQL Macros Release
+          python3 - <<'PY'
+          import textwrap
+          content = textwrap.dedent("""\
+              ## duckdb-cn-shift SQL Macros Release
 
-Primary deliverable: [`sql/cnshift.sql`](https://github.com/tshelianthus/duckdb-cn-shift/blob/main/sql/cnshift.sql)
+              Primary deliverable: [`sql/cnshift.sql`](https://github.com/tshelianthus/duckdb-cn-shift/blob/main/sql/cnshift.sql)
 
-Provides zero-dependency (pure SQL macro) China coordinate transformations for DuckDB using the official `spatial` extension.
+              Provides zero-dependency (pure SQL macro) China coordinate transformations for DuckDB using the official `spatial` extension.
 
-### Quick Start (SQL)
+              ### Quick Start (SQL)
 
-```sql
-INSTALL spatial;
-LOAD spatial;
-.read 'sql/cnshift.sql'
+              ```sql
+              INSTALL spatial;
+              LOAD spatial;
+              .read 'sql/cnshift.sql'
 
-SELECT wgs84_to_gcj02(31.2304, 121.4737);
-SELECT wgs84_to_gcj02(geom) FROM parcels;
-```
-NOTES
+              SELECT wgs84_to_gcj02(31.2304, 121.4737);
+              SELECT wgs84_to_gcj02(geom) FROM parcels;
+              ```
+          """)
+          with open("/tmp/sql_release_notes.md", "w") as f:
+              f.write(content)
+          PY
           gh release create "$sql_tag" \
             --title "$sql_tag: SQL Macros Release" \
             --notes-file /tmp/sql_release_notes.md || true

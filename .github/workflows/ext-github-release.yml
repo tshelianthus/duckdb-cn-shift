@@ -21,10 +21,6 @@ concurrency:
   group: ext-github-release-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
-  actions: read
-
 jobs:
   guard:
     name: Require tag on main
@@ -56,9 +52,6 @@ jobs:
   duckdb-stable-build:
     name: Build extension binaries
     needs: guard
-    permissions:
-      contents: read
-      actions: write
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
     with:
       duckdb_version: v1.5.5
@@ -69,8 +62,6 @@ jobs:
   code-quality-check:
     name: Code Quality Check
     needs: guard
-    permissions:
-      contents: read
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_code_quality.yml@v1.5-variegata
     with:
       duckdb_version: v1.5.5
@@ -86,7 +77,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
     env:
       DUCKDB_VERSION: v1.5.5
       GH_TOKEN: ${{ github.token }}
@@ -126,7 +116,7 @@ jobs:
             ls -laR artifacts >&2 || true
             exit 1
           fi
-          (cd dist && shasum -a 256 * > SHA256SUMS)
+          (cd dist && shasum -a 256 -- * > SHA256SUMS)
           ls -la dist
 
       - name: Write release notes
