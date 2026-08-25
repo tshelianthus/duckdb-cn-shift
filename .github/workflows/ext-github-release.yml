@@ -16,9 +16,14 @@ on:
     tags:
       - "ext-v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. ext-v0.2.0)"
+        required: false
+        type: string
 
 concurrency:
-  group: ext-github-release-${{ github.ref }}
+  group: ext-github-release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +33,7 @@ jobs:
     steps:
       - name: Check ext-v* tag
         run: |
-          tag="${GITHUB_REF_NAME}"
+          tag="${{ inputs.tag || github.ref_name }}"
           if [[ ! "$tag" =~ ^ext-v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
             echo "Ref '$tag' is not an ext-vMAJOR.MINOR.PATCH tag (docs/VERSIONING.md)."
             exit 1
@@ -90,6 +95,8 @@ jobs:
           merge-multiple: false
 
       - name: Pack release assets
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -101,10 +108,10 @@ jobs:
             native="$(find "$dir" -type f -name 'cnshift.duckdb_extension' -print -quit)"
             wasm="$(find "$dir" -type f -name 'cnshift.duckdb_extension.wasm' -print -quit)"
             if [ -n "$native" ]; then
-              cp "$native" "dist/cnshift-${GITHUB_REF_NAME}-duckdb-${DUCKDB_VERSION}-${arch}.duckdb_extension"
+              cp "$native" "dist/cnshift-${TAG}-duckdb-${DUCKDB_VERSION}-${arch}.duckdb_extension"
               found=1
             elif [ -n "$wasm" ]; then
-              cp "$wasm" "dist/cnshift-${GITHUB_REF_NAME}-duckdb-${DUCKDB_VERSION}-${arch}.duckdb_extension.wasm"
+              cp "$wasm" "dist/cnshift-${TAG}-duckdb-${DUCKDB_VERSION}-${arch}.duckdb_extension.wasm"
               found=1
             else
               echo "warning: no extension binary in $dir" >&2
@@ -121,7 +128,7 @@ jobs:
 
       - name: Write release notes
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           python3 - <<'PY'
           import os
@@ -154,9 +161,11 @@ jobs:
           PY
 
       - name: Publish GitHub Release
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          tag="$GITHUB_REF_NAME"
+          tag="$TAG"
           title="$tag (cnshift, DuckDB ${DUCKDB_VERSION})"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release edit "$tag" --title "$title" --notes-file release-notes.md

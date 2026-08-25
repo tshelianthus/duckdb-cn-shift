@@ -16,6 +16,7 @@ on:
       - main
     paths:
       - "VERSION"
+  workflow_dispatch:
 
 concurrency:
   group: auto-release-main-${{ github.ref }}
