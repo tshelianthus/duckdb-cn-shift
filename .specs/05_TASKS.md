@@ -26,25 +26,27 @@
 - [x] Flat GeometryCollection; nested-depth policy documented
 - [x] Geometry WKT goldens cross-checked against ALGORITHM / pg formulas
 
-## [ ] Phase S3: SQL release
+## [x] Phase S3: SQL release
 
-- [ ] Tag `sql-v0.1.0` (private distribution; not tagged this iteration)
+- [x] Tag `sql-v0.1.0` / `sql-v0.2.0` (private distribution; dual-track releases published)
 - [x] README / bootstrap examples locked in
+- [x] SHCS2000 transforms & golden verification
 
 ## [~] Phase 0 (legacy): C++ extension-template scaffold
 
 - [x] Existing in-repo C++ skeleton and `00_load.test` (not the product mainline)
 - [x] Optionally keep load-smoke green after submodule checkout (does not block SQL)
-- [ ] **Cancel** former “Phase 2 Community Submission” — superseded by DECISIONS
+- [x] **Cancel** former “Phase 2 Community Submission” — superseded by DECISIONS
 
 ## [x] Phase E1: ext/ extension fallback
 
 - [x] Populate `ext/` (sources in `ext/src/`; root CMake/Makefile for extension-ci-tools)
 - [x] Consume the same `testdata/golden/`
-- [ ] Tag `ext-v0.1.0` after merge (not tagged this iteration); full CI matrix only on `ext/**`/`src/**`/build-file triggers
+- [x] Tag `ext-v0.1.0` / `ext-v0.2.0` after merge; full CI matrix releases multi-arch unsigned binaries
 - [x] Private binary distribution: GitHub Release assets on `ext-v*` + `allow_unsigned_extensions` docs; **still not on community**
+- [x] Automated release workflow on merge to `main` via root `VERSION`
 
 ## Explicitly cancelled legacy tasks
 
-- [ ] ~~Submit `description.yml` to `duckdb/community-extensions`~~ **CANCELLED (legal boundary)**
-- [ ] ~~Shared bare tag `v0.1.0`~~ **CANCELLED** (use `sql-v*` / `ext-v*` instead)
+- [x] ~~Submit `description.yml` to `duckdb/community-extensions`~~ **CANCELLED (legal boundary)**
+- [x] ~~Shared bare tag `v0.1.0`~~ **CANCELLED** (use `sql-v*` / `ext-v*` instead)
